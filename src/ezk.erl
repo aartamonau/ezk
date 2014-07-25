@@ -58,10 +58,10 @@
 -type ezk_acl_id()       :: string().
 -type ezk_acl()          :: {ezk_acl_perms(), ezk_acl_scheme(), ezk_acl_id()}.
 -type ezk_acls()         :: [ezk_acl()].
--type ezk_getdata()      :: {}.
+-type ezk_getdata()      :: #getdata{}.
 -type ezk_watchowner()   :: pid().
 -type ezk_watchmessage() :: term().
--type ezk_ls2data()      :: {children, [ezk_path()]} | {getdata, ezk_getdata()}.
+-type ezk_ls2data()      :: {children, [ezk_path()]} | ezk_getdata().
 -type ezk_server()       :: {}.
 -type ezk_monitor()      :: pid().
 -type ezk_authreply()    :: {ok, authed} | {error, auth_failed} |

@@ -25,18 +25,6 @@
 -export([get_message_typ/1, replymessage_2_reply/3, get_watch_data/1]).
 -include_lib("../include/ezk.hrl").
 
--record(getdata, {czxid,
-                  mzxid,
-                  pzxid,
-                  ctime,
-                  mtime,
-                  dataversion,
-                  datalength,
-                  number_children,
-                  cversion,
-                  aclversion,
-                  ephe_owner}).
-
 %% First stage of Message Passing.
 %% The first part of the Message determines the type (heartbeat, watchevent, reply) and
 %% the first part of the Header (which is necessary to find the right entry in
