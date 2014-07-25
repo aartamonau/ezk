@@ -26,11 +26,13 @@
 -include_lib("../include/ezk.hrl").
 
 %functions creating and deleting zkNodes
--export([  create/3,   create/4,   create/5,   delete/2]).
--export([n_create/5, n_create/6, n_create/7, n_delete/4]).
+-export([  create/3,   create/4,   create/5,   delete/2,   delete/3]).
+-export([n_create/5, n_create/6, n_create/7, n_delete/4, n_delete/5]).
 %functions dealing with node informations
--export([  set/3,   get/2,   ls/2,   ls2/2,   set_acl/3,   get_acl/2]).
--export([n_set/5, n_get/4, n_ls/4, n_ls2/4, n_set_acl/5, n_get_acl/4]).
+-export([  set/3,   set/4,   get/2,   ls/2,   ls2/2]).
+-export([n_set/5, n_set/6, n_get/4, n_ls/4, n_ls2/4]).
+-export([  set_acl/3,   set_acl/4,   get_acl/2]).
+-export([n_set_acl/5, n_set_acl/6, n_get_acl/4]).
 %functions dealing with watches
 -export([ls/4, get/4, ls2/4]).
 %macros
@@ -45,7 +47,7 @@
 -export([exists/2, exists/4]).
 
 -type ezk_err()          :: inval_acl | dir_exists | no_rights | no_dir |
-                            childs_or_forbidden.
+                            childs_or_forbidden | bad_version.
 -type ezk_path()         :: string().
 -type ezk_conpid()       :: pid().
 -type ezk_data()         :: binary().
@@ -64,6 +66,7 @@
 -type ezk_monitor()      :: pid().
 -type ezk_authreply()    :: {ok, authed} | {error, auth_failed} |
                             {error, unknown, binary()} | {error,  auth_in_progress}.
+-type ezk_version()      :: integer().
 
 -spec create/3 :: (ezk_conpid(), ezk_path(), ezk_data()) ->
                   {ok, ezk_path()} | {error, ezk_err()}.
@@ -74,6 +77,8 @@
 -spec ensure_path/2 :: (ezk_conpid(), ezk_path()) ->
                        {ok, ezk_path()} | {error, ezk_err()}.
 -spec delete/2 :: (ezk_conpid(), ezk_path()) ->
+                  {ok, ezk_path()} | {error, ezk_err()}.
+-spec delete/3 :: (ezk_conpid(), ezk_path(), ezk_version()) ->
                   {ok, ezk_path()} | {error, ezk_err()}.
 -spec delete_all/2 ::  (ezk_conpid(), ezk_path()) ->
                        {ok, ezk_path()} | {error, ezk_err()}.
@@ -95,7 +100,11 @@
                   {ok, {ezk_data(), ezk_getdata()}} | {error, ezk_err()}.
 -spec set/3    :: (ezk_conpid(), ezk_path(), ezk_data()) ->
                   {ok, ezk_getdata()} | {error, ezk_err()}.
+-spec set/4    :: (ezk_conpid(), ezk_path(), ezk_data(), ezk_version()) ->
+                  {ok, ezk_getdata()} | {error, ezk_err()}.
 -spec set_acl/3:: (ezk_conpid(), ezk_path(), ezk_acls()) ->
+                  {ok, ezk_getdata()}.
+-spec set_acl/4:: (ezk_conpid(), ezk_path(), ezk_acls(), ezk_version()) ->
                   {ok, ezk_getdata()}.
 -spec get_acl/2:: (ezk_conpid, ezk_path()) ->
                   {ok, {ezk_acls(), ezk_getdata()}}.
@@ -119,6 +128,7 @@ help() ->
     io:format("| ezk:create/4     : ConPId,  Path, Data, Typ                |~n"),
     io:format("| ezk:create/5     : ConPId,  Path, Data, Typ, [Acl]         |~n"),
     io:format("| ezk:delete/2     : ConPId,  Path                           |~n"),
+    io:format("| ezk:delete/3     : ConPId,  Path, Version                  |~n"),
     io:format("| ezk:delete_all/2 : ConPId,  Path                           |~n"),
     io:format("| ezk:exists/2     : ConPId,  Path                           |~n"),
     io:format("| ezk:exists/4     : ConPId,  Path, WatchOwner, Watchmessage |~n"),
@@ -126,7 +136,9 @@ help() ->
     io:format("| ezk:get/4        : ConPId,  Path, WatchOwner, Watchmessage |~n"),
     io:format("| ezk:get_acl/2    : ConPId,  Path                           |~n"),
     io:format("| ezk:set/3        : ConPId,  Path, Data                     |~n"),
+    io:format("| ezk:set/4        : ConPId,  Path, Data, Version            |~n"),
     io:format("| ezk:set_acl/3    : ConPId,  Path, [Acl]                    |~n"),
+    io:format("| ezk:set_acl/4    : ConPId,  Path, [Acl], Version           |~n"),
     io:format("| ezk:ls/2         : ConPId,  Path                           |~n"),
     io:format("| ezk:ls/4         : ConPId,  Path, WatchOwner, Watchmessage |~n"),
     io:format("| ezk:ls2/2        : ConPId,  Path                           |~n"),
@@ -202,9 +214,17 @@ ensure_path(ConnectionPId, Path) ->
 %% Only working if Node has no children.
 %% Reply = Path where Path = String
 delete(ConnectionPId, Path) ->
-    ezk_connection:delete(ConnectionPId, Path).
+    ezk_connection:delete(ConnectionPId, Path, -1).
 n_delete(ConnectionPId, Path, Receiver, Tag) ->
-    ezk_connection:n_delete(ConnectionPId, Path, Receiver, Tag).
+    ezk_connection:n_delete(ConnectionPId, Path, -1, Receiver, Tag).
+
+%% Deletes a ZK_Node if its version matches.
+%% Only working if Node has no children.
+%% Reply = Path where Path = String
+delete(ConnectionPId, Path, Version) ->
+    ezk_connection:delete(ConnectionPId, Path, Version).
+n_delete(ConnectionPId, Path, Version, Receiver, Tag) ->
+    ezk_connection:n_delete(ConnectionPId, Path, Version, Receiver, Tag).
 
 %% Deletes a ZK_Node and all his childs.
 %% Reply = Path where Path = String
@@ -247,17 +267,32 @@ n_get_acl(ConnectionPId, Path, Receiver, Tag) ->
 %% Sets new Data in a Node. Old ones are lost.
 %% Reply = Parameters with Data like at get
 set(ConnectionPId, Path, Data) ->
-   ezk_connection:set(ConnectionPId, Path, Data).
+   ezk_connection:set(ConnectionPId, Path, Data, -1).
 n_set(ConnectionPId, Path, Data, Receiver, Tag) ->
-   ezk_connection:n_set(ConnectionPId, Path, Data, Receiver, Tag).
+   ezk_connection:n_set(ConnectionPId, Path, Data, -1, Receiver, Tag).
+
+%% Sets new Data in a Node if its verion matches. Old ones are lost.
+%% Reply = Parameters with Data like at get
+set(ConnectionPId, Path, Data, Version) ->
+   ezk_connection:set(ConnectionPId, Path, Data, Version).
+n_set(ConnectionPId, Path, Data, Version, Receiver, Tag) ->
+   ezk_connection:n_set(ConnectionPId, Path, Data, Version, Receiver, Tag).
 
 %% Sets new Acls in a Node. Old ones are lost.
 %% ACL like above.
 %% Reply = Parameters with Data like at get
 set_acl(ConnectionPId, Path, Acls) ->
-    ezk_connection:set_acl(ConnectionPId, Path, Acls).
+    ezk_connection:set_acl(ConnectionPId, Path, Acls, -1).
 n_set_acl(ConnectionPId, Path, Acls, Receiver, Tag) ->
-    ezk_connection:n_set_acl(ConnectionPId, Path, Acls, Receiver, Tag).
+    ezk_connection:n_set_acl(ConnectionPId, Path, Acls, -1, Receiver, Tag).
+
+%% Sets new Acls in a Node if version matches. Old ones are lost.
+%% ACL like above.
+%% Reply = Parameters with Data like at get
+set_acl(ConnectionPId, Path, Acls, Version) ->
+    ezk_connection:set_acl(ConnectionPId, Path, Acls, Version).
+n_set_acl(ConnectionPId, Path, Acls, Version, Receiver, Tag) ->
+    ezk_connection:n_set_acl(ConnectionPId, Path, Acls, Version, Receiver, Tag).
 
 %% Lists all Children of a Node. Paths are given as Binarys!
 %% Reply = [ChildName] where ChildName = <<"Name">>

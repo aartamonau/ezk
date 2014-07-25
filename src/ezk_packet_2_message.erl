@@ -94,6 +94,8 @@ replymessage_2_reply(CommId, Path, PayloadWithErrorCode) ->
         Reply = {error, inval_acl};
     <<255,255,255,146,_Payload/binary>> ->
         Reply = {error, dir_exists};
+    <<255,255,255,153,_Payload/binary>> ->
+        Reply = {error, bad_version};
     <<255,255,255,154,_Payload/binary>> ->
         Reply = {error, no_rights};
     <<255,255,255,155,_Payload/binary>> ->

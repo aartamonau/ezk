@@ -51,8 +51,8 @@ make_packet({create, Path, Data, Typ, Acls}, Iteration) ->
     Command = 1,
     wrap_packet({Command, Path, Load}, Iteration);
 %%delete
-make_packet({delete, Path, _Typ}, Iteration ) ->
-    Load = <<(pack_it_l2b(Path))/binary, 255, 255, 255, 255 >>,
+make_packet({delete, Path, _Typ, Version}, Iteration) ->
+    Load = <<(pack_it_l2b(Path))/binary, Version:32/big>>,
     Command = 2,
     wrap_packet({Command, Path, Load}, Iteration);
 %exists
@@ -76,25 +76,25 @@ make_packet({getw, Path}, Iteration) ->
     Command = 4,
     wrap_packet({Command, Path, Load}, Iteration );
 %% set
-make_packet({set, Path, Data}, Iteration) ->
+make_packet({set, Path, Data, Version}, Iteration) ->
     Load = <<(pack_it_l2b(Path))/binary,
          (pack_it_b2b(Data))/binary,
-         255, 255, 255, 255>>,
+         Version:32>>,
     Command = 5,
-    wrap_packet({Command, Path, Load}, Iteration );
+    wrap_packet({Command, Path, Load}, Iteration);
 %% get acl
 make_packet({get_acl, Path}, Iteration) ->
     Load = <<(pack_it_l2b(Path))/binary>>,
     Command = 6,
     wrap_packet({Command, Path, Load}, Iteration );
 %% set acl
-make_packet({set_acl, Path, Acls}, Iteration) ->
+make_packet({set_acl, Path, Acls, Version}, Iteration) ->
     ?LOG(3,"m2p: trying to set an acl, starting to build package"),
     AclBin = acls_2_bin(Acls,<<>>,0),
     ?LOG(3,"m2p: trying to set an acl, AclBin constructed"),
     Load = <<(pack_it_l2b(Path))/binary,
          AclBin/binary,
-         255, 255, 255, 255>>,
+         Version:32>>,
     Command = 7,
     ?LOG(3,"m2p: trying to set an acl, Load constructed"),
     wrap_packet({Command, Path, Load}, Iteration );

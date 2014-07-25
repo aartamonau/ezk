@@ -51,8 +51,8 @@
 %% gen_server callbacks
 -export([addauth/3, die/2]).
 %normal functions
--export([  create/3,   create/4,   create/5,   delete/2,   set/3,   set_acl/3]).
--export([n_create/5, n_create/6, n_create/7, n_delete/4, n_set/5, n_set_acl/5]).
+-export([  create/3,   create/4,   create/5,   delete/3,   set/4,   set_acl/4]).
+-export([n_create/5, n_create/6, n_create/7, n_delete/5, n_set/6, n_set_acl/6]).
 -export([  get/2,   get_acl/2,   ls2/2,   ls/2]).
 -export([n_get/4, n_get_acl/4, n_ls2/4, n_ls/4]).
 %functions dealing with watches
@@ -127,10 +127,11 @@ n_create(ConnectionPId, Path, Data, Typ, Acls, Receiver, Tag)
 %% Deletes a ZK_Node
 %% Only working if Node has no children.
 %% Reply = Path where Path = String
-delete(ConnectionPId, Path) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {delete,  Path, []}}).
-n_delete(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {delete,  Path, []}, Receiver, Tag}).
+delete(ConnectionPId, Path, Version) when is_pid(ConnectionPId) ->
+    call_and_catch(ConnectionPId, {command, {delete,  Path, [], Version}}).
+n_delete(ConnectionPId, Path, Version, Receiver, Tag) when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId,
+                    {nbcommand, {delete,  Path, [], Version}, Receiver, Tag}).
 
 %% Deletes a ZK_Node and all his childs.
 %% Reply = Path where Path = String
@@ -147,7 +148,7 @@ delete_all(ConnectionPId, Path) when is_pid(ConnectionPId) ->
     case Childs of
         {ok, []} ->
             ?LOG(3, "Killing ~s",[Path]),
-            delete(ConnectionPId, Path);
+            delete(ConnectionPId, Path, -1);
         {ok, ListOfChilds} ->
             ?LOG(3, "Delete All: List of Childs: ~s",[ListOfChilds]),
             case Path of
@@ -163,7 +164,7 @@ delete_all(ConnectionPId, Path) when is_pid(ConnectionPId) ->
 
             end,
             ?LOG(3, "Killing ~s",[Path]),
-            delete(ConnectionPId, Path);
+            delete(ConnectionPId, Path, -1);
         {error, Message} ->
             {error, Message}
     end.
@@ -206,19 +207,20 @@ n_get_acl(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 %% Sets new Data in a Node. Old ones are lost.
 %% Dataformat is Binary.
 %% Reply = Parameters with Data like at get
-set(ConnectionPId, Path, Data) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {set, Path, Data}}).
-n_set(ConnectionPId, Path, Data, Receiver, Tag) when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {set, Path, Data}, Receiver, Tag}).
+set(ConnectionPId, Path, Data, Version) when is_pid(ConnectionPId) ->
+    call_and_catch(ConnectionPId, {command, {set, Path, Data, Version}}).
+n_set(ConnectionPId, Path, Data, Version, Receiver, Tag) when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId, {nbcommand, {set, Path, Data, Version}, Receiver, Tag}).
 
 %% Sets new Acls in a Node. Old ones are lost.
 %% ACL like above.
 %% Reply = Parameters with Data like at get
-set_acl(ConnectionPId, Path, Acls) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {set_acl, Path, Acls}}).
-n_set_acl(ConnectionPId, Path, Acls, Receiver, Tag)
+set_acl(ConnectionPId, Path, Acls, Version) when is_pid(ConnectionPId) ->
+    call_and_catch(ConnectionPId, {command, {set_acl, Path, Acls, Version}}).
+n_set_acl(ConnectionPId, Path, Acls, Version, Receiver, Tag)
   when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {set_acl, Path, Acls}, Receiver, Tag}).
+    gen_server:cast(ConnectionPId,
+                    {nbcommand, {set_acl, Path, Acls, Version}, Receiver, Tag}).
 
 %% Lists all Children of a Node. Paths are given as Binarys!
 %% Reply = [ChildName] where ChildName = <<"Name">>
