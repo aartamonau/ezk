@@ -34,8 +34,8 @@
 get_message_typ(Data) ->
     case Data  of
 %%% Heartbeat
-        <<255,255,255,254, Heartbeat/binary>> ->
-            {heartbeat, Heartbeat};
+    <<255,255,255,254, Heartbeat/binary>> ->
+        {heartbeat, Heartbeat};
 %%% Watchevents
     <<255,255,255,255, 255,255,255,255, 255,255,255,255 , 0,0,0,0, Payload/binary>> ->
         ?LOG(3, "packet_2_message: A Watchevent arrived"),
@@ -43,7 +43,7 @@ get_message_typ(Data) ->
     <<255, 255, 255, 252, 0:64, Payload/binary>> ->
         {authreply, Payload};
 %%% Normal Replys
-        <<MessId:32, Zxid:64, Payload/binary>> ->
+    <<MessId:32, Zxid:64, Payload/binary>> ->
         ?LOG(3, "packet_2_message: A normal Message arrived"),
             {normal, MessId, Zxid, Payload}
     end.
