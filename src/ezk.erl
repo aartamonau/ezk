@@ -46,8 +46,17 @@
 -export([add_monitors/2, get_connections/0]).
 -export([exists/2, exists/4]).
 
--type ezk_err()          :: inval_acl | dir_exists | no_rights | no_dir |
-                            childs_or_forbidden | bad_version.
+-type ezk_err()          :: system_error | runtime_inconsistency |
+                            data_inconsistency | connection_loss |
+                            marshalling_error | unimplemented |
+                            operation_timeout | bad_arguments |
+                            new_config_no_quorum | reconfig_inprogress |
+                            api_error | no_node | no_auth | bad_version |
+                            no_children_for_ephemerals | node_exists |
+                            not_empty | session_expired | invalid_callback |
+                            invalid_acl | auth_failed | session_moved |
+                            not_readonly | ephemeral_on_local_session |
+                            no_watcher | {unknown_server_error, neg_integer()}.
 -type ezk_path()         :: string().
 -type ezk_conpid()       :: pid().
 -type ezk_data()         :: binary().

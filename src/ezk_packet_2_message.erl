@@ -71,7 +71,7 @@ get_watch_data(Binary) ->
 replymessage_2_reply(CommId, PayloadWithErrorCode) ->
     ?LOG(1,"packet_2_message: Trying to Interpret payload: ~w", [PayloadWithErrorCode]),
     case PayloadWithErrorCode of
-    <<0,0,0,0,Payload/binary>> ->
+    <<0:32, Payload/binary>> ->
         ?LOG(1
          ,"packet_2_message: Interpreting the payload ~w with commid ~w"
          ,[Payload, CommId]),
@@ -82,23 +82,41 @@ replymessage_2_reply(CommId, PayloadWithErrorCode) ->
                 _ ->
                     {ok, Replydata}
                 end,
-        ?LOG(1, "The Reply is ~w",[Reply]);
-    <<255,255,255,142,_Payload/binary>> ->
-        Reply = {error, inval_acl};
-    <<255,255,255,146,_Payload/binary>> ->
-        Reply = {error, dir_exists};
-    <<255,255,255,153,_Payload/binary>> ->
-        Reply = {error, bad_version};
-    <<255,255,255,154,_Payload/binary>> ->
-        Reply = {error, no_rights};
-    <<255,255,255,155,_Payload/binary>> ->
-        Reply = {error, no_dir};
-    <<255,255,255,248,_Payload/binary>> ->
-        Reply = {error, childs_or_forbidden};
-    Cody ->
-        Reply = {unknown, Cody}
-    end,
-    Reply.
+        ?LOG(1, "The Reply is ~w",[Reply]),
+        Reply;
+    <<ErrorCode:32, _/binary>> ->
+        {error, map_error(ErrorCode)}
+    end.
+
+%% Map server error code to an atom. In reality, not all of these can be
+%% returned by server. But for simplicity and convenience we keep them here
+%% anyway.
+map_error(-1) -> system_error;
+map_error(-2) -> runtime_inconsistency;
+map_error(-3) -> data_inconsistency;
+map_error(-4) -> connection_loss;
+map_error(-5) -> marshalling_error;
+map_error(-6) -> unimplemented;
+map_error(-7) -> operation_timeout;
+map_error(-8) -> bad_arguments;
+map_error(-13) -> new_config_no_quorum;
+map_error(-14) -> reconfig_inprogress;
+map_error(-100) -> api_error;
+map_error(-101) -> no_node;
+map_error(-102) -> no_auth;
+map_error(-103) -> bad_version;
+map_error(-108) -> no_children_for_ephemerals;
+map_error(-110) -> node_exists;
+map_error(-111) -> not_empty;
+map_error(-112) -> session_expired;
+map_error(-113) -> invalid_callback;
+map_error(-114) -> invalid_acl;
+map_error(-115) -> auth_failed;
+map_error(-118) -> session_moved;
+map_error(-119) -> not_readonly;
+map_error(-120) -> ephemeral_on_local_session;
+map_error(-121) -> no_watcher;
+map_error(Code) -> {unknown_server_error, Code}.
 
 %% There is a pattern matching on the command id and depending on the command id
 %% the Reply is interpreted.
