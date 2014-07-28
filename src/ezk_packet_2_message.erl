@@ -80,7 +80,7 @@ replymessage_2_reply(CommId, PayloadWithErrorCode) ->
                 ok ->
                     ok;
                 _ ->
-                    Replydata
+                    {ok, Replydata}
                 end,
         ?LOG(1, "The Reply is ~w",[Reply]);
     <<255,255,255,142,_Payload/binary>> ->
@@ -103,18 +103,18 @@ replymessage_2_reply(CommId, PayloadWithErrorCode) ->
 %% There is a pattern matching on the command id and depending on the command id
 %% the Reply is interpreted.
 %%% create --> Reply = The new Path
-interpret_reply_data(1, _Path, Reply) ->
+interpret_reply_data(1, Reply) ->
     <<LengthOfData:32, Data/binary>> = Reply,
     {ReplyPath, _Left} = split_binary(Data, LengthOfData),
     binary_to_list(ReplyPath);
 %%% delete --> Reply = Nothing --> use the Path
-interpret_reply_data(2, Path, _Reply) ->
-    Path;
+interpret_reply_data(2, _Reply) ->
+    ok;
 %%% exists
-interpret_reply_data(3, _Path, Reply) ->
+interpret_reply_data(3, Reply) ->
     getbinary_2_list(Reply);
 %%% get --> Reply = The data stored in the node and then all the nodes  parameters
-interpret_reply_data(4, _Path, Reply) ->
+interpret_reply_data(4, Reply) ->
     ?LOG(3,"P2M: Got a get reply"),
     <<LengthOfData:32/signed-integer, Data/binary>> = Reply,
     ?LOG(3,"P2M: Length of data is ~w",[LengthOfData]),
@@ -127,11 +127,11 @@ interpret_reply_data(4, _Path, Reply) ->
     Parameter = getbinary_2_list(Left),
     {ReplyData, Parameter};
 %%% set --> Reply = the nodes parameters
-interpret_reply_data(5, _Path, Reply) ->
+interpret_reply_data(5, Reply) ->
     getbinary_2_list(Reply);
 
 %%% get_acl --> A list of the Acls and the nodes parameters
-interpret_reply_data(6, _Path, Reply) ->
+interpret_reply_data(6, Reply) ->
     ?LOG(3,"P2M: Got a get acl reply"),
     <<NumberOfAcls:32, Data/binary>> = Reply,
     ?LOG(3,"P2M: There are ~w acls",[NumberOfAcls]),
@@ -141,10 +141,10 @@ interpret_reply_data(6, _Path, Reply) ->
     ?LOG(3,"P2M: Data got also parsed."),
     {Acls, Parameter};
 %%% set_acl --> Reply = the nodes parameters
-interpret_reply_data(7, _Path, Reply) ->
+interpret_reply_data(7, Reply) ->
     getbinary_2_list(Reply);
 %%% ls --> Reply = a list of all children of the node.
-interpret_reply_data(8, _Path, Reply) ->
+interpret_reply_data(8, Reply) ->
     ?LOG(4,"packet_2_message: Interpreting a ls"),
     <<NumberOfAnswers:32, Data/binary>> = Reply,
     ?LOG(4,"packet_2_message: Number of Children: ~w",[NumberOfAnswers]),
@@ -154,7 +154,7 @@ interpret_reply_data(8, _Path, Reply) ->
     ?LOG(4,"packet_2_message: Paths are: ~w",[List]),
     lists:map(fun(A) -> list_to_binary(A) end, List);
 %%% ls2 --> Reply = a list of the nodes children and the nodes parameters
-interpret_reply_data(12, _Path, Reply) ->
+interpret_reply_data(12, Reply) ->
     {<<NumberOfAnswers:32>>, Data} = split_binary(Reply, 4),
     {Children, Left} =  get_n_paths(NumberOfAnswers, Data),
     Parameter = getbinary_2_list(Left),

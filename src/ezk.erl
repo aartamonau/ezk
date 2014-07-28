@@ -76,10 +76,8 @@
                   {ok, ezk_path()} | {error, ezk_err()}.
 -spec ensure_path/2 :: (ezk_conpid(), ezk_path()) ->
                        {ok, ezk_path()} | {error, ezk_err()}.
--spec delete/2 :: (ezk_conpid(), ezk_path()) ->
-                  {ok, ezk_path()} | {error, ezk_err()}.
--spec delete/3 :: (ezk_conpid(), ezk_path(), ezk_version()) ->
-                  {ok, ezk_path()} | {error, ezk_err()}.
+-spec delete/2 :: (ezk_conpid(), ezk_path()) -> ok | {error, ezk_err()}.
+-spec delete/3 :: (ezk_conpid(), ezk_path(), ezk_version()) -> ok | {error, ezk_err()}.
 -spec delete_all/2 ::  (ezk_conpid(), ezk_path()) ->
                        {ok, ezk_path()} | {error, ezk_err()}.
 -spec exists/2 :: (ezk_conpid(), ezk_path()) ->

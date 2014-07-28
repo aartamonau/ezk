@@ -322,11 +322,11 @@ handle_call({info, get_watches}, _From, State) ->
 %% c) set noreply. Real answer is triggered by incoming tcp message
 handle_call({command, Args}, From, State) ->
     Iteration = State#cstate.iteration,
-    {ok, CommId, Path, Packet} = ezk_message_2_packet:make_packet(Args, Iteration),
+    {ok, CommId, Packet} = ezk_message_2_packet:make_packet(Args, Iteration),
     gen_tcp:send(State#cstate.socket, Packet),
     ?LOG(1, "Connection: Packet send."),
     ?LOG(1, "Connection: Command started by ~w.",[From]),
-    NewOpen  = dict:store(Iteration, {CommId, Path, {blocking, From}}, State#cstate.open_requests),
+    NewOpen  = dict:store(Iteration, {CommId, {blocking, From}}, State#cstate.open_requests),
     ?LOG(3, "Connection: Saved open Request."),
     NewState = State#cstate{iteration = Iteration+1, open_requests = NewOpen },
     ?LOG(3, "Connection: Returning to wait status"),
@@ -374,10 +374,10 @@ handle_call({addauth, Scheme, Auth}, From, State) ->
 %% a normal message sending instead of the gen_server:reply command.
 handle_cast({nbcommand, Args, Receiver, Tag}, State) ->
     Iteration = State#cstate.iteration,
-    {ok, CommId, Path, Packet} = ezk_message_2_packet:make_packet(Args, Iteration),
+    {ok, CommId, Packet} = ezk_message_2_packet:make_packet(Args, Iteration),
     gen_tcp:send(State#cstate.socket, Packet),
     ?LOG(1, "Connection: Packet send"),
-    NewOpen  = dict:store(Iteration, {CommId, Path, {nonblocking, Receiver, Tag}},
+    NewOpen  = dict:store(Iteration, {CommId, {nonblocking, Receiver, Tag}},
                           State#cstate.open_requests),
     ?LOG(3, "Connection: Saved open Request."),
     NewState = State#cstate{iteration = Iteration+1, open_requests = NewOpen },
@@ -416,7 +416,7 @@ handle_info(Info, State) ->
 
 %% if server dies all owners who are waiting for watchevents get a Message
 %% M = {watchlost, WatchMessage, Data}.
-%% All Outstanding requests are answered with {error, client_broke, CommId, Path}
+%% All Outstanding requests are answered with {error, client_broke, CommId}
 terminate(_Reason, State) ->
     Iteration   = State#cstate.iteration,
     QuitMessage = ezk_message_2_packet:make_quit_message(Iteration),
@@ -436,11 +436,11 @@ terminate(_Reason, State) ->
     ?LOG(1,"Connection: TERMINATING"),
     ok.
 
-send_client_broke(_Key, {CommId, Path, {blocking, From}}) when is_pid(From) ->
-    From ! {error, client_broke, CommId, Path};
-send_client_broke(_, {CommId, Path, {nonblocking, From, _}})
+send_client_broke(_Key, {CommId, {blocking, From}}) when is_pid(From) ->
+    From ! {error, client_broke, CommId};
+send_client_broke(_, {CommId, {nonblocking, From, _}})
   when is_pid(From) ->
-    From ! {error, client_broke, CommId, Path};
+    From ! {error, client_broke, CommId};
 send_client_broke(_, {_, _, Con}) ->
     ?LOG(1,"terminate: Con this is not a pid; ~p", [Con]),
     ok.
@@ -545,13 +545,13 @@ handle_typed_incomming_message({watchevent, Payload}, State) ->
 %%% d) Send the answer
 handle_typed_incomming_message({normal, MessId, _Zxid, PayloadWithErrorcode}, State) ->
     ?LOG(3, "Connection: Normal Message"),
-    {ok, {CommId, Path, From}}  = dict:find(MessId, State#cstate.open_requests),
-    ?LOG(1, "Connection: Found dictonary entry: CommId = ~w, Path = ~w, From = ~w",
-         [CommId, Path, From]),
+    {ok, {CommId, From}}  = dict:find(MessId, State#cstate.open_requests),
+    ?LOG(1, "Connection: Found dictonary entry: CommId = ~w, From = ~w",
+         [CommId, From]),
     NewDict = dict:erase(MessId, State#cstate.open_requests),
     NewState = State#cstate{open_requests = NewDict},
     ?LOG(3, "Connection: Dictionary updated"),
-    Reply = ezk_packet_2_message:replymessage_2_reply(CommId, Path,
+    Reply = ezk_packet_2_message:replymessage_2_reply(CommId,
                                                       PayloadWithErrorcode),
     ?LOG(3, "Connection: determinated reply"),
     ok = inet:setopts(State#cstate.socket,[{active,once}]),

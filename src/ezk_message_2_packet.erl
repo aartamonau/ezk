@@ -31,7 +31,7 @@
 %% and constructs a corresponding Binary which is used to signal the command to the server.
 %% The command is translated to the command id and the payload for the packet is computed.
 %% Then the function wrap_packet wraps this all up neatly.
-%% Returns {ok, CommandId, Path, PacketBinary}
+%% Returns {ok, CommandId, PacketBinary}
 make_packet(Command, Iteration) ->
     wrap_packet(make_payload(Command), Iteration).
 
@@ -52,44 +52,44 @@ make_payload({create, Path, Data, Typ, Acls}) ->
          AclBin/binary,
          Mode:32>>,
     Command = 1,
-    {Command, Path, Load};
+    {Command, Load};
 %%delete
 make_payload({delete, Path, _Typ, Version}) ->
     Load = <<(pack_it_l2b(Path))/binary, Version:32/big>>,
     Command = 2,
-    {Command, Path, Load};
+    {Command, Load};
 %exists
 make_payload({exists, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8 >>,
     Command = 3,
-    {Command, Path, Load};
+    {Command, Load};
 make_payload({existsw, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8 >>,
     Command = 3,
-    {Command, Path, Load};
+    {Command, Load};
 
 %% get
 make_payload({get, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8>>,
     Command = 4,
-    {Command, Path, Load};
+    {Command, Load};
 %% getw (the last Bit in the load is 1 if there should be a watch)
 make_payload({getw, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8>>,
     Command = 4,
-    {Command, Path, Load};
+    {Command, Load};
 %% set
 make_payload({set, Path, Data, Version}) ->
     Load = <<(pack_it_l2b(Path))/binary,
          (pack_it_b2b(Data))/binary,
          Version:32>>,
     Command = 5,
-    {Command, Path, Load};
+    {Command, Load};
 %% get acl
 make_payload({get_acl, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary>>,
     Command = 6,
-    {Command, Path, Load};
+    {Command, Load};
 %% set acl
 make_payload({set_acl, Path, Acls, Version}) ->
     ?LOG(3,"m2p: trying to set an acl, starting to build package"),
@@ -100,27 +100,27 @@ make_payload({set_acl, Path, Acls, Version}) ->
          Version:32>>,
     Command = 7,
     ?LOG(3,"m2p: trying to set an acl, Load constructed"),
-    {Command, Path, Load};
+    {Command, Load};
 %% ls
 make_payload({ls, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8>>,
     Command = 8,
-    {Command, Path, Load};
+    {Command, Load};
 %% ls with a watch
 make_payload({lsw, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8>>,
     Command = 8,
-    {Command, Path, Load};
+    {Command, Load};
 %% ls2
 make_payload({ls2, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8>>,
     Command = 12,
-    {Command, Path, Load};
+    {Command, Load};
 %% ls2 with watch
 make_payload({ls2w, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8>>,
     Command = 12,
-    {Command, Path, Load}.
+    {Command, Load}.
 
 
 %% addauth (special case, because iteration is not used, so the standard
@@ -151,12 +151,12 @@ pack_it_b2b(Bin) ->
 %% zookeeper packet from all of them but the path. Instead the Path is passed on
 %% to the ezk_server.
 %% Returns {ok, CommandId, Path, PacketBinary}
-wrap_packet({Command, Path, Load}, Iteration) ->
-    ?LOG(3, "message_2_packet: Try send a request {command, Path, Load}: ~w",
-         [{Command, Path, Load}]),
+wrap_packet({Command, Load}, Iteration) ->
+    ?LOG(3, "message_2_packet: Try send a request {command, Load}: ~w",
+         [{Command, Load}]),
     Packet = <<Iteration:32, Command:32, Load/binary>>,
     ?LOG(3, "message_2_packet: Request send"),
-    {ok, Command, Path, Packet}.
+    {ok, Command, Packet}.
 
 %% Gets a List of Acl and returns a binary representation of them.
 %% To call this function use acls_2_bin(ListOfAcls, <<>>, 0).
