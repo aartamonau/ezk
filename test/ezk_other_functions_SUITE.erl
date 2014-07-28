@@ -76,7 +76,7 @@ waitexistwatches(ConPId, [Path | Pathlist]) ->
     receive
 	{{existwatch, Path}, _Something} ->
 	    {ok, _getInformations} = ezk:exists(ConPId, Path),
-	    {ok, _Path} = ezk:delete(ConPId, Path),
+	    ok = ezk:delete(ConPId, Path),
 	    waitexistwatches(ConPId, Pathlist)
     end.
 

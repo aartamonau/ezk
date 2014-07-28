@@ -22,7 +22,7 @@
 %%
 %% -------------------------------------------------------------------
 -module(ezk_packet_2_message).
--export([get_message_typ/1, replymessage_2_reply/3, get_watch_data/1]).
+-export([get_message_typ/1, replymessage_2_reply/2, get_watch_data/1]).
 -include_lib("../include/ezk.hrl").
 
 %% First stage of Message Passing.
@@ -68,15 +68,20 @@ get_watch_data(Binary) ->
 %% Gets a replybinary from the server and returns it as a parsed Erlang tupel.
 %% First step is to filter if there was an error and pass it on to the server if there is.
 %% If not the interpret_reply_data function is used to interpret the Payload.
-replymessage_2_reply(CommId, Path, PayloadWithErrorCode) ->
+replymessage_2_reply(CommId, PayloadWithErrorCode) ->
     ?LOG(1,"packet_2_message: Trying to Interpret payload: ~w", [PayloadWithErrorCode]),
     case PayloadWithErrorCode of
     <<0,0,0,0,Payload/binary>> ->
         ?LOG(1
-         ,"packet_2_message: Interpreting the payload ~w with commid ~w and Path ~w"
-         ,[Payload, CommId, Path]),
-            Replydata = interpret_reply_data(CommId, Path, Payload),
-        Reply = {ok, Replydata},
+         ,"packet_2_message: Interpreting the payload ~w with commid ~w"
+         ,[Payload, CommId]),
+            Replydata = interpret_reply_data(CommId, Payload),
+        Reply = case Replydata of
+                ok ->
+                    ok;
+                _ ->
+                    Replydata
+                end,
         ?LOG(1, "The Reply is ~w",[Reply]);
     <<255,255,255,142,_Payload/binary>> ->
         Reply = {error, inval_acl};

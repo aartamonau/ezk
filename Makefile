@@ -30,7 +30,7 @@ common_move:
 compile: 
 	./rebar compile
 
-test:	zk_start testen zk_stop
+test:	compile zk_start testen zk_stop
 
 testen:
 	sleep 5	

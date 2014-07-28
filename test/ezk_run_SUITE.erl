@@ -181,7 +181,7 @@ delete_list(_ConPId, []) ->
     ok;
 delete_list(ConPId, [{Path, _Data} | Tail]) ->
     io:format("deleting node ~w and ~w left",[Path, length(Tail)]),
-    {ok, Path} = ezk:delete(ConPId, Path),
+    ok = ezk:delete(ConPId, Path),
     delete_list(ConPId, Tail).
 
 wait_nodedeleted_watches([]) ->
@@ -200,7 +200,7 @@ change_childs(_ConPId, []) ->
 change_childs(ConPId, [{Path, _Data} | Tail]) ->
     NewData = datamaker(?DATALENGTH),
     {ok, ChildName} = ezk:create(ConPId, Path ++ "/testchild", NewData),
-    {ok, ChildName} = ezk:delete(ConPId, ChildName),
+    ok = ezk:delete(ConPId, ChildName),
     change_childs(ConPId, Tail).
 
 wait_childwatches([]) ->
@@ -230,7 +230,7 @@ wait_datawatches([{Path, _Data} | Tail]) ->
 sequenzed_delete(_ConPId, []) ->
     ok;
 sequenzed_delete(ConPId, [{Path,_Data} | Tail]) ->
-    {ok, Path} = ezk:delete(ConPId, Path),
+    ok = ezk:delete(ConPId, Path),
     sequenzed_delete(ConPId, Tail).
 
 set_watch_and_test(_ConPId, [])->
