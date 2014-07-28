@@ -32,8 +32,11 @@
 %% The command is translated to the command id and the payload for the packet is computed.
 %% Then the function wrap_packet wraps this all up neatly.
 %% Returns {ok, CommandId, Path, PacketBinary}
+make_packet(Command, Iteration) ->
+    wrap_packet(make_payload(Command), Iteration).
+
 %% create
-make_packet({create, Path, Data, Typ, Acls}, Iteration) ->
+make_payload({create, Path, Data, Typ, Acls}) ->
     %% e = epheremal , s = sequenced
     case Typ of
         e -> Mode = 1;
@@ -49,46 +52,46 @@ make_packet({create, Path, Data, Typ, Acls}, Iteration) ->
          AclBin/binary,
          Mode:32>>,
     Command = 1,
-    wrap_packet({Command, Path, Load}, Iteration);
+    {Command, Path, Load};
 %%delete
-make_packet({delete, Path, _Typ, Version}, Iteration) ->
+make_payload({delete, Path, _Typ, Version}) ->
     Load = <<(pack_it_l2b(Path))/binary, Version:32/big>>,
     Command = 2,
-    wrap_packet({Command, Path, Load}, Iteration);
+    {Command, Path, Load};
 %exists
-make_packet({exists, Path}, Iteration) ->
+make_payload({exists, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8 >>,
     Command = 3,
-    wrap_packet({Command, Path, Load}, Iteration);
-make_packet({existsw, Path}, Iteration) ->
+    {Command, Path, Load};
+make_payload({existsw, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8 >>,
     Command = 3,
-    wrap_packet({Command, Path, Load}, Iteration);
+    {Command, Path, Load};
 
 %% get
-make_packet({get, Path}, Iteration) ->
+make_payload({get, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8>>,
     Command = 4,
-    wrap_packet({Command, Path, Load}, Iteration );
+    {Command, Path, Load};
 %% getw (the last Bit in the load is 1 if there should be a watch)
-make_packet({getw, Path}, Iteration) ->
+make_payload({getw, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8>>,
     Command = 4,
-    wrap_packet({Command, Path, Load}, Iteration );
+    {Command, Path, Load};
 %% set
-make_packet({set, Path, Data, Version}, Iteration) ->
+make_payload({set, Path, Data, Version}) ->
     Load = <<(pack_it_l2b(Path))/binary,
          (pack_it_b2b(Data))/binary,
          Version:32>>,
     Command = 5,
-    wrap_packet({Command, Path, Load}, Iteration);
+    {Command, Path, Load};
 %% get acl
-make_packet({get_acl, Path}, Iteration) ->
+make_payload({get_acl, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary>>,
     Command = 6,
-    wrap_packet({Command, Path, Load}, Iteration );
+    {Command, Path, Load};
 %% set acl
-make_packet({set_acl, Path, Acls, Version}, Iteration) ->
+make_payload({set_acl, Path, Acls, Version}) ->
     ?LOG(3,"m2p: trying to set an acl, starting to build package"),
     AclBin = acls_2_bin(Acls,<<>>,0),
     ?LOG(3,"m2p: trying to set an acl, AclBin constructed"),
@@ -97,27 +100,27 @@ make_packet({set_acl, Path, Acls, Version}, Iteration) ->
          Version:32>>,
     Command = 7,
     ?LOG(3,"m2p: trying to set an acl, Load constructed"),
-    wrap_packet({Command, Path, Load}, Iteration );
+    {Command, Path, Load};
 %% ls
-make_packet({ls, Path}, Iteration) ->
+make_payload({ls, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8>>,
     Command = 8,
-    wrap_packet({Command, Path, Load}, Iteration );
+    {Command, Path, Load};
 %% ls with a watch
-make_packet({lsw, Path}, Iteration) ->
+make_payload({lsw, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8>>,
     Command = 8,
-    wrap_packet({Command, Path, Load}, Iteration );
+    {Command, Path, Load};
 %% ls2
-make_packet({ls2, Path}, Iteration) ->
+make_payload({ls2, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8>>,
     Command = 12,
-    wrap_packet({Command, Path, Load}, Iteration );
+    {Command, Path, Load};
 %% ls2 with watch
-make_packet({ls2w, Path}, Iteration) ->
+make_payload({ls2w, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8>>,
     Command = 12,
-    wrap_packet({Command, Path, Load}, Iteration ).
+    {Command, Path, Load}.
 
 
 %% addauth (special case, because iteration is not used, so the standard
