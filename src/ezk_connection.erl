@@ -51,8 +51,14 @@
 %% gen_server callbacks
 -export([addauth/3, die/2]).
 %normal functions
--export([  create/3,   create/4,   create/5,   delete/3,   set/4,   set_acl/4]).
--export([n_create/5, n_create/6, n_create/7, n_delete/5, n_set/6, n_set_acl/6]).
+-export([  create/3,   create/4,   create/5]).
+-export([n_create/5, n_create/6, n_create/7]).
+-export([  delete/2,   delete/3]).
+-export([n_delete/4, n_delete/5]).
+-export([  set/3,   set/4]).
+-export([n_set/5, n_set/6]).
+-export([  set_acl/3,   set_acl/4]).
+-export([n_set_acl/5, n_set_acl/6]).
 -export([  get/2,   get_acl/2,   ls2/2,   ls/2]).
 -export([n_get/4, n_get_acl/4, n_ls2/4, n_ls/4]).
 %functions dealing with watches
@@ -127,6 +133,12 @@ n_create(ConnectionPId, Path, Data, Typ, Acls, Receiver, Tag)
 %% Deletes a ZK_Node
 %% Only working if Node has no children.
 %% Reply = Path where Path = String
+delete(ConnectionPId, Path) when is_pid(ConnectionPId) ->
+    call_and_catch(ConnectionPId, {command, {delete, Path, [], -1}}).
+n_delete(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId,
+                    {nbcommand, {delete, Path, [], -1}, Receiver, Tag}).
+
 delete(ConnectionPId, Path, Version) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {command, {delete,  Path, [], Version}}).
 n_delete(ConnectionPId, Path, Version, Receiver, Tag) when is_pid(ConnectionPId) ->
@@ -207,6 +219,11 @@ n_get_acl(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 %% Sets new Data in a Node. Old ones are lost.
 %% Dataformat is Binary.
 %% Reply = Parameters with Data like at get
+set(ConnectionPId, Path, Data) when is_pid(ConnectionPId) ->
+    call_and_catch(ConnectionPId, {command, {set, Path, Data, -1}}).
+n_set(ConnectionPId, Path, Data, Receiver, Tag) when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId, {nbcommand, {set, Path, Data, -1}, Receiver, Tag}).
+
 set(ConnectionPId, Path, Data, Version) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {command, {set, Path, Data, Version}}).
 n_set(ConnectionPId, Path, Data, Version, Receiver, Tag) when is_pid(ConnectionPId) ->
@@ -215,6 +232,13 @@ n_set(ConnectionPId, Path, Data, Version, Receiver, Tag) when is_pid(ConnectionP
 %% Sets new Acls in a Node. Old ones are lost.
 %% ACL like above.
 %% Reply = Parameters with Data like at get
+set_acl(ConnectionPId, Path, Acls) when is_pid(ConnectionPId) ->
+    call_and_catch(ConnectionPId, {command, {set_acl, Path, Acls, -1}}).
+n_set_acl(ConnectionPId, Path, Acls, Receiver, Tag)
+  when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId,
+                    {nbcommand, {set_acl, Path, Acls, -1}, Receiver, Tag}).
+
 set_acl(ConnectionPId, Path, Acls, Version) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {command, {set_acl, Path, Acls, Version}}).
 n_set_acl(ConnectionPId, Path, Acls, Version, Receiver, Tag)

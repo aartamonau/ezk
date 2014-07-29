@@ -221,9 +221,9 @@ ensure_path(ConnectionPId, Path) ->
 %% Only working if Node has no children.
 %% Reply = Path where Path = String
 delete(ConnectionPId, Path) ->
-    ezk_connection:delete(ConnectionPId, Path, -1).
+    ezk_connection:delete(ConnectionPId, Path).
 n_delete(ConnectionPId, Path, Receiver, Tag) ->
-    ezk_connection:n_delete(ConnectionPId, Path, -1, Receiver, Tag).
+    ezk_connection:n_delete(ConnectionPId, Path, Receiver, Tag).
 
 %% Deletes a ZK_Node if its version matches.
 %% Only working if Node has no children.
@@ -274,9 +274,9 @@ n_get_acl(ConnectionPId, Path, Receiver, Tag) ->
 %% Sets new Data in a Node. Old ones are lost.
 %% Reply = Parameters with Data like at get
 set(ConnectionPId, Path, Data) ->
-   ezk_connection:set(ConnectionPId, Path, Data, -1).
+   ezk_connection:set(ConnectionPId, Path, Data).
 n_set(ConnectionPId, Path, Data, Receiver, Tag) ->
-   ezk_connection:n_set(ConnectionPId, Path, Data, -1, Receiver, Tag).
+   ezk_connection:n_set(ConnectionPId, Path, Data, Receiver, Tag).
 
 %% Sets new Data in a Node if its verion matches. Old ones are lost.
 %% Reply = Parameters with Data like at get
@@ -289,9 +289,9 @@ n_set(ConnectionPId, Path, Data, Version, Receiver, Tag) ->
 %% ACL like above.
 %% Reply = Parameters with Data like at get
 set_acl(ConnectionPId, Path, Acls) ->
-    ezk_connection:set_acl(ConnectionPId, Path, Acls, -1).
+    ezk_connection:set_acl(ConnectionPId, Path, Acls).
 n_set_acl(ConnectionPId, Path, Acls, Receiver, Tag) ->
-    ezk_connection:n_set_acl(ConnectionPId, Path, Acls, -1, Receiver, Tag).
+    ezk_connection:n_set_acl(ConnectionPId, Path, Acls, Receiver, Tag).
 
 %% Sets new Acls in a Node if version matches. Old ones are lost.
 %% ACL like above.
