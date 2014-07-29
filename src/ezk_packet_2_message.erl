@@ -75,7 +75,7 @@ replymessage_2_reply(CommId, PayloadWithErrorCode) ->
         ?LOG(1
          ,"packet_2_message: Interpreting the payload ~w with commid ~w"
          ,[Payload, CommId]),
-            Replydata = interpret_reply_data(CommId, Payload),
+            {Replydata, <<>>} = interpret_reply_data(CommId, Payload),
         Reply = case Replydata of
                 ok ->
                     ok;
@@ -122,28 +122,27 @@ map_error(Code) -> {unknown_server_error, Code}.
 %% the Reply is interpreted.
 %%% create --> Reply = The new Path
 interpret_reply_data(1, Reply) ->
-    <<LengthOfData:32, Data/binary>> = Reply,
-    {ReplyPath, _Left} = split_binary(Data, LengthOfData),
-    binary_to_list(ReplyPath);
+    <<LengthOfData:32, ReplyPath:LengthOfData/binary, Rest/binary>> = Reply,
+    {binary_to_list(ReplyPath), Rest};
 %%% delete --> Reply = Nothing --> use the Path
-interpret_reply_data(2, _Reply) ->
-    ok;
+interpret_reply_data(2, Reply) ->
+    {ok, Reply};
 %%% exists
 interpret_reply_data(3, Reply) ->
     getbinary_2_list(Reply);
 %%% get --> Reply = The data stored in the node and then all the nodes  parameters
 interpret_reply_data(4, Reply) ->
     ?LOG(3,"P2M: Got a get reply"),
-    <<LengthOfData:32/signed-integer, Data/binary>> = Reply,
+    <<LengthOfData:32/signed, Data/binary>> = Reply,
     ?LOG(3,"P2M: Length of data is ~w",[LengthOfData]),
     {ReplyData, Left} = case LengthOfData of
-                            -1 -> {<<"">>,Data};
+                            -1 -> {<<"">>, Data};
                             _ -> split_binary(Data, LengthOfData)
                         end,
     ?LOG(3,"P2M: The Parameterdata is ~w",[Left]),
     ?LOG(3,"P2M: Data is ~w",[ReplyData]),
-    Parameter = getbinary_2_list(Left),
-    {ReplyData, Parameter};
+    {Parameter, Rest} = getbinary_2_list(Left),
+    {{ReplyData, Parameter}, Rest};
 %%% set --> Reply = the nodes parameters
 interpret_reply_data(5, Reply) ->
     getbinary_2_list(Reply);
@@ -155,9 +154,9 @@ interpret_reply_data(6, Reply) ->
     ?LOG(3,"P2M: There are ~w acls",[NumberOfAcls]),
     {Acls, Data2} = get_n_acls(NumberOfAcls, [],  Data),
     ?LOG(3,"P2M: Acls got parsed: ~w", [Acls]),
-    Parameter = getbinary_2_list(Data2),
+    {Parameter, Rest} = getbinary_2_list(Data2),
     ?LOG(3,"P2M: Data got also parsed."),
-    {Acls, Parameter};
+    {{Acls, Parameter}, Rest};
 %%% set_acl --> Reply = the nodes parameters
 interpret_reply_data(7, Reply) ->
     getbinary_2_list(Reply);
@@ -167,16 +166,16 @@ interpret_reply_data(8, Reply) ->
     <<NumberOfAnswers:32, Data/binary>> = Reply,
     ?LOG(4,"packet_2_message: Number of Children: ~w",[NumberOfAnswers]),
     ?LOG(4,"packet_2_message: The Binary is: ~w",[Data]),
-    {List, _Left} =  get_n_paths(NumberOfAnswers, Data),
+    {List, Rest} =  get_n_paths(NumberOfAnswers, Data),
     ?LOG(4,"packet_2_message: Paths extracted."),
     ?LOG(4,"packet_2_message: Paths are: ~w",[List]),
-    lists:map(fun(A) -> list_to_binary(A) end, List);
+    {lists:map(fun list_to_binary/1, List), Rest};
 %%% ls2 --> Reply = a list of the nodes children and the nodes parameters
 interpret_reply_data(12, Reply) ->
     {<<NumberOfAnswers:32>>, Data} = split_binary(Reply, 4),
     {Children, Left} =  get_n_paths(NumberOfAnswers, Data),
-    Parameter = getbinary_2_list(Left),
-    [{children, Children}, Parameter].
+    {Parameter, Rest} = getbinary_2_list(Left),
+    {[{children, Children}, Parameter], Rest}.
 
 %%----------------------------------------------------------------
 %% Little Helpers (internally neede functions)
@@ -197,14 +196,16 @@ getbinary_2_list(Binary) ->
     <<Czxid:64,                           Mzxid:64,
       Ctime:64,                           Mtime:64,
       DaVer:32,          CVer:32,         AclVer:32,    EpheOwner:64,
-                         DaLe:32,         NumChi:32,    Pzxid:64>> = Binary,
+                         DaLe:32,         NumChi:32,    Pzxid:64,
+      Rest/binary>> = Binary,
     ?LOG(3,"p2m: Matching Parameterdata Successfull"),
-    #getdata{czxid          = Czxid,   mzxid     = Mzxid,
-             ctime          = Ctime,   mtime     = Mtime,
-             dataversion    = DaVer,   datalength= DaLe,
-             number_children= NumChi,  pzxid     = Pzxid,
-             cversion       = CVer,    aclversion= AclVer,
-             ephe_owner     = EpheOwner}.
+    {#getdata{czxid          = Czxid,   mzxid     = Mzxid,
+              ctime          = Ctime,   mtime     = Mtime,
+              dataversion    = DaVer,   datalength= DaLe,
+              number_children= NumChi,  pzxid     = Pzxid,
+              cversion       = CVer,    aclversion= AclVer,
+              ephe_owner     = EpheOwner},
+     Rest}.
 
 %% uses the first 4 Byte of a binary to determine the lengths of the data and then
 %% returns a pair {Data, Leftover}
