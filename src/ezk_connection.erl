@@ -449,10 +449,10 @@ terminate(_Reason, State) ->
     waitterminateok(Socket),
     Watchtable = State#cstate.watchtable,
     ?LOG(1,"Connection: Sending watches"),
-    ets:foldl(fun({Data, WO, WM}, _Acc0) ->
+    ets:foldl(fun({_, WO, WM}, _Acc0) ->
                 ?LOG(2,"Connection: Sending watchlost to ~w: ~w",
-                [WO, {watchlost, WM, Data}]),
-                WO ! {watchlost, WM, Data},
+                [WO, {WM, connection_loss}]),
+                WO ! {WM, connection_loss},
                 ok
               end, ok, Watchtable),
     OpenRequests = State#cstate.open_requests,
@@ -460,15 +460,13 @@ terminate(_Reason, State) ->
     ?LOG(1,"Connection: TERMINATING"),
     ok.
 
-send_client_broke(_Key, {CommId, {blocking, From}}) when is_pid(From) ->
-    From ! {error, client_broke, CommId};
-send_client_broke(_, {CommId, {nonblocking, From, _}})
-  when is_pid(From) ->
-    From ! {error, client_broke, CommId};
-send_client_broke(_, {_, _, Con}) ->
-    ?LOG(1,"terminate: Con this is not a pid; ~p", [Con]),
-    ok.
-
+send_client_broke(auth, From) ->
+    gen_server:reply(From, {error, connection_loss});
+send_client_broke(_Key, {_CommId, {blocking, From}}) ->
+    gen_server:reply(From, {error, connection_loss});
+send_client_broke(_, {_CommId, {nonblocking, Receiver, Tag}})
+  when is_pid(Receiver) ->
+    Receiver ! {Tag, {error, connection_loss}}.
 
 waitterminateok(Socket) ->
     receive
