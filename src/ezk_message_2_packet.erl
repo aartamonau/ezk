@@ -120,6 +120,18 @@ make_payload({ls2, Path}) ->
 make_payload({ls2w, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8>>,
     Command = 12,
+    {Command, Load};
+make_payload({check, Path, Version}) ->
+    Load = <<(pack_it_l2b(Path))/binary, Version:32>>,
+    Command = 13,
+    {Command, Load};
+make_payload({transaction, Operations}) ->
+    Command = 14,
+    Load0 = << <<(begin
+                     {Id, L} = make_payload(Op),
+                     <<Id:32, 0:8, -1:32, L/binary>>
+                  end)/binary>> || Op <- Operations >>,
+    Load = << Load0/binary, -1:32, 1:8, -1:32>>,
     {Command, Load}.
 
 

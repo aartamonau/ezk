@@ -75,22 +75,17 @@ replymessage_2_reply(CommId, PayloadWithErrorCode) ->
         ?LOG(1
          ,"packet_2_message: Interpreting the payload ~w with commid ~w"
          ,[Payload, CommId]),
-            {Replydata, <<>>} = interpret_reply_data(CommId, Payload),
-        Reply = case Replydata of
-                ok ->
-                    ok;
-                _ ->
-                    {ok, Replydata}
-                end,
+            {Reply, <<>>} = interpret_reply_data(CommId, Payload),
         ?LOG(1, "The Reply is ~w",[Reply]),
         Reply;
-    <<ErrorCode:32, _/binary>> ->
+    <<ErrorCode:32/signed, _/binary>> ->
         {error, map_error(ErrorCode)}
     end.
 
 %% Map server error code to an atom. In reality, not all of these can be
 %% returned by server. But for simplicity and convenience we keep them here
 %% anyway.
+map_error(0) -> rolled_back;
 map_error(-1) -> system_error;
 map_error(-2) -> runtime_inconsistency;
 map_error(-3) -> data_inconsistency;
@@ -118,20 +113,30 @@ map_error(-120) -> ephemeral_on_local_session;
 map_error(-121) -> no_watcher;
 map_error(Code) -> {unknown_server_error, Code}.
 
+
+interpret_reply_data(Command, Data) ->
+    {Reply0, RestData} = do_interpret_reply_data(Command, Data),
+    case Reply0 of
+        ok ->
+            {ok, RestData};
+        _ ->
+            {{ok, Reply0}, RestData}
+    end.
+
 %% There is a pattern matching on the command id and depending on the command id
 %% the Reply is interpreted.
 %%% create --> Reply = The new Path
-interpret_reply_data(1, Reply) ->
+do_interpret_reply_data(1, Reply) ->
     <<LengthOfData:32, ReplyPath:LengthOfData/binary, Rest/binary>> = Reply,
     {binary_to_list(ReplyPath), Rest};
 %%% delete --> Reply = Nothing --> use the Path
-interpret_reply_data(2, Reply) ->
+do_interpret_reply_data(2, Reply) ->
     {ok, Reply};
 %%% exists
-interpret_reply_data(3, Reply) ->
+do_interpret_reply_data(3, Reply) ->
     getbinary_2_list(Reply);
 %%% get --> Reply = The data stored in the node and then all the nodes  parameters
-interpret_reply_data(4, Reply) ->
+do_interpret_reply_data(4, Reply) ->
     ?LOG(3,"P2M: Got a get reply"),
     <<LengthOfData:32/signed, Data/binary>> = Reply,
     ?LOG(3,"P2M: Length of data is ~w",[LengthOfData]),
@@ -144,11 +149,11 @@ interpret_reply_data(4, Reply) ->
     {Parameter, Rest} = getbinary_2_list(Left),
     {{ReplyData, Parameter}, Rest};
 %%% set --> Reply = the nodes parameters
-interpret_reply_data(5, Reply) ->
+do_interpret_reply_data(5, Reply) ->
     getbinary_2_list(Reply);
 
 %%% get_acl --> A list of the Acls and the nodes parameters
-interpret_reply_data(6, Reply) ->
+do_interpret_reply_data(6, Reply) ->
     ?LOG(3,"P2M: Got a get acl reply"),
     <<NumberOfAcls:32, Data/binary>> = Reply,
     ?LOG(3,"P2M: There are ~w acls",[NumberOfAcls]),
@@ -158,10 +163,10 @@ interpret_reply_data(6, Reply) ->
     ?LOG(3,"P2M: Data got also parsed."),
     {{Acls, Parameter}, Rest};
 %%% set_acl --> Reply = the nodes parameters
-interpret_reply_data(7, Reply) ->
+do_interpret_reply_data(7, Reply) ->
     getbinary_2_list(Reply);
 %%% ls --> Reply = a list of all children of the node.
-interpret_reply_data(8, Reply) ->
+do_interpret_reply_data(8, Reply) ->
     ?LOG(4,"packet_2_message: Interpreting a ls"),
     <<NumberOfAnswers:32, Data/binary>> = Reply,
     ?LOG(4,"packet_2_message: Number of Children: ~w",[NumberOfAnswers]),
@@ -171,11 +176,16 @@ interpret_reply_data(8, Reply) ->
     ?LOG(4,"packet_2_message: Paths are: ~w",[List]),
     {lists:map(fun list_to_binary/1, List), Rest};
 %%% ls2 --> Reply = a list of the nodes children and the nodes parameters
-interpret_reply_data(12, Reply) ->
+do_interpret_reply_data(12, Reply) ->
     {<<NumberOfAnswers:32>>, Data} = split_binary(Reply, 4),
     {Children, Left} =  get_n_paths(NumberOfAnswers, Data),
     {Parameter, Rest} = getbinary_2_list(Left),
-    {[{children, Children}, Parameter], Rest}.
+    {[{children, Children}, Parameter], Rest};
+do_interpret_reply_data(13, Reply) ->
+    {ok, Reply};
+%%% transaction
+do_interpret_reply_data(14, Reply) ->
+    interpret_transaction_reply(Reply, []).
 
 %%----------------------------------------------------------------
 %% Little Helpers (internally neede functions)
@@ -243,3 +253,20 @@ get_perm_from_tupel({0,0,0,0,1}) ->
     [a | get_perm_from_tupel({0,0,0,0,0})];
 get_perm_from_tupel({0,0,0,0,0}) ->
     [].
+
+interpret_transaction_reply(<<Type:32/signed, Done:8, _:32, Rest/binary>>, R) ->
+    case Done =:= 0 of
+        true ->
+            {Response, Rest1} =
+                case Type =:= -1 of
+                    true ->
+                        <<Error:32/signed, Rest0/binary>> = Rest,
+                        {{error, map_error(Error)}, Rest0};
+                    false ->
+                        interpret_reply_data(Type, Rest)
+                end,
+
+            interpret_transaction_reply(Rest1, [Response | R]);
+        false ->
+            {lists:reverse(R), Rest}
+    end.

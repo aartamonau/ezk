@@ -61,6 +61,12 @@
 -export([n_set_acl/5, n_set_acl/6]).
 -export([  get/2,   get_acl/2,   ls2/2,   ls/2]).
 -export([n_get/4, n_get_acl/4, n_ls2/4, n_ls/4]).
+-export([transaction/2]).
+-export([n_transaction/4]).
+-export([create_op/2, create_op/3, create_op/4]).
+-export([delete_op/1, delete_op/2]).
+-export([set_op/2, set_op/3]).
+-export([check_op/2]).
 %functions dealing with watches
 -export([ls/4, get/4, ls2/4]).
 %macros
@@ -107,16 +113,16 @@ addauth(ConnectionPId, Scheme, Auth) when is_pid(ConnectionPId) ->
 %% Creates a new ZK_Node
 %% Reply = Path where Path = String
 create(ConnectionPId, Path, Data) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {create, Path, Data, [], [undef]}}).
+    call_and_catch(ConnectionPId, {command, create_op(Path, Data)}).
 n_create(ConnectionPId, Path, Data, Receiver, Tag) when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {create, Path, Data, [], [undef]},
+    gen_server:cast(ConnectionPId, {nbcommand, create_op(Path, Data),
                                     Receiver, Tag}).
 %% Typ = e | s | es (stands for etheremal, sequenzed or both)
 create(ConnectionPId, Path, Data, Typ) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {create, Path, Data, Typ, [undef]}}).
+    call_and_catch(ConnectionPId, {command, create_op(Path, Data, Typ)}).
 n_create(ConnectionPId, Path, Data, Typ, Receiver, Tag)
   when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {create, Path, Data, Typ, [undef]},
+    gen_server:cast(ConnectionPId, {nbcommand, create_op(Path, Data, Typ),
                                     Receiver, Tag}).
 
 %% Acls = [Acl] where Acl = {Permissions, Scheme, Id}
@@ -124,26 +130,38 @@ n_create(ConnectionPId, Path, Data, Typ, Receiver, Tag)
 %% and Permission = [Per] | String
 %% where Per = r | w | c | d | a
 create(ConnectionPId, Path, Data, Typ, Acls) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {create, Path, Data, Typ, Acls}}).
+    call_and_catch(ConnectionPId, {command, create_op(Path, Data, Typ, Acls)}).
 n_create(ConnectionPId, Path, Data, Typ, Acls, Receiver, Tag)
   when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {create, Path, Data, Typ, Acls},
+    gen_server:cast(ConnectionPId, {nbcommand, create_op(Path, Data, Typ, Acls),
                                     Receiver, Tag}).
+
+create_op(Path, Data) ->
+    {create, Path, Data, [], [undef]}.
+create_op(Path, Data, Typ) ->
+    {create, Path, Data, Typ, [undef]}.
+create_op(Path, Data, Typ, Acls) ->
+    {create, Path, Data, Typ, Acls}.
 
 %% Deletes a ZK_Node
 %% Only working if Node has no children.
 %% Reply = Path where Path = String
 delete(ConnectionPId, Path) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {delete, Path, [], -1}}).
+    call_and_catch(ConnectionPId, {command, delete_op(Path)}).
 n_delete(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
     gen_server:cast(ConnectionPId,
-                    {nbcommand, {delete, Path, [], -1}, Receiver, Tag}).
+                    {nbcommand, delete_op(Path), Receiver, Tag}).
 
 delete(ConnectionPId, Path, Version) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {delete,  Path, [], Version}}).
+    call_and_catch(ConnectionPId, {command, delete_op(Path, Version)}).
 n_delete(ConnectionPId, Path, Version, Receiver, Tag) when is_pid(ConnectionPId) ->
     gen_server:cast(ConnectionPId,
-                    {nbcommand, {delete,  Path, [], Version}, Receiver, Tag}).
+                    {nbcommand, delete_op(Path, Version), Receiver, Tag}).
+
+delete_op(Path) ->
+    {delete, Path, [], -1}.
+delete_op(Path, Version) ->
+    {delete, Path, [], Version}.
 
 %% Deletes a ZK_Node and all his childs.
 %% Reply = Path where Path = String
@@ -220,14 +238,20 @@ n_get_acl(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 %% Dataformat is Binary.
 %% Reply = Parameters with Data like at get
 set(ConnectionPId, Path, Data) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {set, Path, Data, -1}}).
+    call_and_catch(ConnectionPId, {command, set_op(Path, Data)}).
 n_set(ConnectionPId, Path, Data, Receiver, Tag) when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {set, Path, Data, -1}, Receiver, Tag}).
+    gen_server:cast(ConnectionPId, {nbcommand, set_op(Path, Data), Receiver, Tag}).
 
 set(ConnectionPId, Path, Data, Version) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {command, {set, Path, Data, Version}}).
+    call_and_catch(ConnectionPId, {command, set_op(Path, Data, Version)}).
 n_set(ConnectionPId, Path, Data, Version, Receiver, Tag) when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {set, Path, Data, Version}, Receiver, Tag}).
+    gen_server:cast(ConnectionPId,
+                    {nbcommand, set_op(Path, Data, Version), Receiver, Tag}).
+
+set_op(Path, Data) ->
+    {set, Path, Data, -1}.
+set_op(Path, Data, Version) ->
+    {set, Path, Data, Version}.
 
 %% Sets new Acls in a Node. Old ones are lost.
 %% ACL like above.
@@ -285,6 +309,15 @@ ensure_path(ConnectionPId, Path) when is_pid(ConnectionPId) ->
     PrefixPaths = get_prefix_paths(FolderList),
     lists:map(fun(Folder) -> ensure_folder(ConnectionPId, Folder) end, PrefixPaths),
     ls(ConnectionPId, Path).
+
+transaction(ConnectionPId, Operations) when is_pid(ConnectionPId) ->
+    call_and_catch(ConnectionPId, {command, {transaction, Operations}}).
+n_transaction(ConnectionPId, Operations, Receiver, Tag) when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId, {nbcommand, {transaction, Operations}},
+                    Receiver, Tag).
+
+check_op(Path, Version) ->
+    {check, Path, Version}.
 
 %% ----------- intern functions------------------------------------
 

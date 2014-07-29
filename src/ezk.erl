@@ -33,6 +33,12 @@
 -export([n_set/5, n_set/6, n_get/4, n_ls/4, n_ls2/4]).
 -export([  set_acl/3,   set_acl/4,   get_acl/2]).
 -export([n_set_acl/5, n_set_acl/6, n_get_acl/4]).
+-export([transaction/2]).
+-export([n_transaction/4]).
+-export([create_op/2, create_op/3, create_op/4]).
+-export([delete_op/1, delete_op/2]).
+-export([set_op/2, set_op/3]).
+-export([check_op/2]).
 %functions dealing with watches
 -export([ls/4, get/4, ls2/4]).
 %macros
@@ -322,6 +328,35 @@ n_ls2(ConnectionPId, Path, Receiver, Tag) ->
 %% Same Reaktion like at get with watch but Type = child
 ls2(ConnectionPId, Path, WatchOwner, WatchMessage) ->
     ezk_connection:ls2(ConnectionPId, Path, WatchOwner, WatchMessage).
+
+%% Run a squence of operations atomically. Results returned in as a list in
+%% the same order. Valid operations can be created by create_op/2,
+%% create_op/3, create_op/4, delete_op/1, delete_op/2, set_op/2, set_op/3,
+%% check_op/2.
+transaction(ConnectionPId, Operations) ->
+    ezk_connection:transaction(ConnectionPId, Operations).
+n_transaction(ConnectionPId, Operations, Receiver, Tag) ->
+    ezk_connection:n_transaction(ConnectionPId, Operations, Receiver, Tag).
+
+create_op(Path, Data) ->
+    ezk_connection:create_op(Path, Data).
+create_op(Path, Data, Typ) ->
+    ezk_connection:create_op(Path, Data, Typ).
+create_op(Path, Data, Typ, Acls) ->
+    ezk_connection:create_op(Path, Data, Typ, Acls).
+
+delete_op(Path) ->
+    ezk_connection:delete_op(Path).
+delete_op(Path, Version) ->
+    ezk_connection:delete_op(Path, Version).
+
+set_op(Path, Data) ->
+    ezk_connection:set_op(Path, Data).
+set_op(Path, Data, Version) ->
+    ezk_connection:set_op(Path, Data, Version).
+
+check_op(Path, Version) ->
+    ezk_connection:check_op(Path, Version).
 
 %% Returns the Actual Transaction Id of the Client.
 %% Reply = Iteration = Int.
