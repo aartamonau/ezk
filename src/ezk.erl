@@ -110,11 +110,11 @@
 -spec set/4    :: (ezk_conpid(), ezk_path(), ezk_data(), ezk_version()) ->
                   {ok, ezk_getdata()} | {error, ezk_err()}.
 -spec set_acl/3:: (ezk_conpid(), ezk_path(), ezk_acls()) ->
-                  {ok, ezk_getdata()}.
+                  {ok, ezk_getdata()} | {error, ezk_err()}.
 -spec set_acl/4:: (ezk_conpid(), ezk_path(), ezk_acls(), ezk_version()) ->
-                  {ok, ezk_getdata()}.
+                  {ok, ezk_getdata()} | {error, ezk_err()}.
 -spec get_acl/2:: (ezk_conpid, ezk_path()) ->
-                  {ok, {ezk_acls(), ezk_getdata()}}.
+                  {ok, {ezk_acls(), ezk_getdata()}} | {error, ezk_err()}.
 
 -spec start_connection/0 :: () -> {ok, ezk_conpid()} | {error, no_server_reached}.
 -spec start_connection/1 :: ([ezk_server()]) ->
