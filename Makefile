@@ -41,20 +41,20 @@ testen:
 
 
 zk_start: zk_config
-	./zookeeper/zoo1/bin/zkServer.sh start zoo.cfg
-	./zookeeper/zoo2/bin/zkServer.sh start zoo.cfg
-	./zookeeper/zoo3/bin/zkServer.sh start zoo.cfg 
+	ZOOCFGDIR=./zookeeper/zoo1/conf ./zookeeper/zoo1/bin/zkServer.sh start zoo.cfg
+	ZOOCFGDIR=./zookeeper/zoo2/conf ./zookeeper/zoo1/bin/zkServer.sh start zoo.cfg
+	ZOOCFGDIR=./zookeeper/zoo3/conf ./zookeeper/zoo1/bin/zkServer.sh start zoo.cfg
 
 zk_start_s: zk_config
-	./zookeeper/zoosingle/bin/zkServer.sh start zoo.cfg
+	ZOOCFGDIR=./zookeeper/zoosingle/conf ./zookeeper/zoosingle/bin/zkServer.sh start zoo.cfg
 
 zk_stop_s:
-	./zookeeper/zoosingle/bin/zkServer.sh stop
+	ZOOCFGDIR=./zookeeper/zoosingle/conf ./zookeeper/zoosingle/bin/zkServer.sh stop
 
 zk_stop: 
-	./zookeeper/zoo1/bin/zkServer.sh stop
-	./zookeeper/zoo2/bin/zkServer.sh stop
-	./zookeeper/zoo3/bin/zkServer.sh stop	
+	ZOOCFGDIR=./zookeeper/zoo1/conf ./zookeeper/zoo1/bin/zkServer.sh stop
+	ZOOCFGDIR=./zookeeper/zoo2/conf ./zookeeper/zoo2/bin/zkServer.sh stop
+	ZOOCFGDIR=./zookeeper/zoo3/conf ./zookeeper/zoo3/bin/zkServer.sh stop
 
 zk_config: zk_clone 
 	mkdir -p ./zookeeper/data/zoo1
