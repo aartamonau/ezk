@@ -1,4 +1,3 @@
-
 -module(epheremal_detection_SUITE).
 
 -compile(export_all).
@@ -36,9 +35,9 @@ end_per_testcase(_TestCase, _Config) ->
 groups() ->
     [].
 
-all() -> 
+all() ->
     %% {skip, test}.
-     [epheremal_monitoring].
+    [epheremal_monitoring].
 
 epheremal_monitoring(_Config) ->
     Self = self(),
@@ -62,24 +61,24 @@ epheremal_monitoring(_Config) ->
     exit(Kid4, "test"),
     io:format("main : lses ok"),
     receive
-	{killing, Con2} ->
-	    io:format("main : got killing message, now waiting"),
-	    timer:sleep(33000),
-	    io:format("main : trying to verify nodestatus"),
-	    Status1 = ezk:get(Con0, "/kid1"),
-	    Status2 = ezk:get(Con0, "/kid2"),
-	    Status3 = ezk:get(Con0, "/kid3"),
-	    io:format("main: status 1 and 2 and 3 are:~n ~w ~n and ~w ~n and ~w",
-		      [Status1, Status2, Status3]),
-	    {ok, _S1} = Status1,
-	    {error, _S2} = Status2,
-	    {error, _S2} = Status3
+        {killing, Con2} ->
+            io:format("main : got killing message, now waiting"),
+            timer:sleep(33000),
+            io:format("main : trying to verify nodestatus"),
+            Status1 = ezk:get(Con0, "/kid1"),
+            Status2 = ezk:get(Con0, "/kid2"),
+            Status3 = ezk:get(Con0, "/kid3"),
+            io:format("main: status 1 and 2 and 3 are:~n ~w ~n and ~w ~n and ~w",
+                      [Status1, Status2, Status3]),
+            {ok, _S1} = Status1,
+            {error, _S2} = Status2,
+            {error, _S2} = Status3
     end,
-	    io:format("main : Killing connections"),
+    io:format("main : Killing connections"),
     ezk:end_connection(Con0, "test"),
     ezk:end_connection(Con1, "test").
-    
-    
+
+
 
 makewait(Con, Time, Node) ->
     io:format("makewait: create node"),
@@ -97,11 +96,8 @@ makemonwaitdie(Con, Time, Node, Father) ->
     io:format("makemonwaitdie: add monitor"),
     ezk:add_monitors(Con, [self()]),
     io:format("makemonwaitdie: waiting"),
-    timer:sleep(Time),    
+    timer:sleep(Time),
     io:format("makemonwaitdie: send message to father"),
     Father ! {killing, Con},
     io:format("makemonwaitdie: die"),
     exit("testreason").
-			 
-		  
-    

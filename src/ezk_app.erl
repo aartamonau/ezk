@@ -1,4 +1,3 @@
-
 %% -------------------------------------------------------------------
 %%
 %% ezk_app: The application wrapper. Nothing Special

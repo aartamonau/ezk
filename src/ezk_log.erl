@@ -1,4 +1,3 @@
-
 %% -------------------------------------------------------------------
 %%
 %% ezk_log: Used to log errors in a uniform way.
@@ -43,5 +42,5 @@ put(NeededLevel, Message) ->
     if
         NeededLevel =< ?LEVEL ->
             io:format(("Logger: " ++ Message++"~n"));
-       true -> {}
+        true -> {}
     end.

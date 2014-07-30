@@ -71,7 +71,7 @@ wait_for(ConnectionPid, Nodename, Timeout) ->
 
 wait_for_get(ConnectionPid, Nodename, Timer) ->
     receive {timeout, Timer, _} ->
-        erlang:error(timeout, Nodename)
+            erlang:error(timeout, Nodename)
     after 0 -> ok
     end,
     case ezk:get(ConnectionPid, Nodename) of
@@ -92,10 +92,10 @@ init([ConnectionPId, Module, Parameters, NodeList]) ->
     ?LOG(1,"Highlander: Init: got parameters module, Para, NodeList: ~w, ~w, ~w",
          [Module, Parameters, NodeList]),
     lists:map(fun(Path) ->
-                Father = get_father(Path),
-                ?LOG(1,"Highlander: ensuring Path ~s",[Father]),
-                ezk:ensure_path(ConnectionPId, Father) ,
-                ?LOG(1,"Highlander: Path ensured: ~s",[Father])
+                      Father = get_father(Path),
+                      ?LOG(1,"Highlander: ensuring Path ~s",[Father]),
+                      ezk:ensure_path(ConnectionPId, Father) ,
+                      ?LOG(1,"Highlander: Path ensured: ~s",[Father])
               end, NodeList),
     %% set initial state
     State = #high_state{ident = false, my_path = "", module = Module,
@@ -141,7 +141,6 @@ terminate(Reason, State) ->
             Motto = Module:motto(Path)
     end,
     ok.
-%    timer:sleep(2000).
 
 %% Called by the failover function
 handle_call({failover, Reason}, _From, State) ->

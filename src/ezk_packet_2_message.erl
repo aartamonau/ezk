@@ -34,36 +34,36 @@
 get_message_typ(Data) ->
     case Data  of
 %%% Heartbeat
-    <<255,255,255,254, Heartbeat/binary>> ->
-        {heartbeat, Heartbeat};
+        <<255,255,255,254, Heartbeat/binary>> ->
+            {heartbeat, Heartbeat};
 %%% Watchevents
-    <<255,255,255,255, 255,255,255,255, 255,255,255,255 , 0,0,0,0, Payload/binary>> ->
-        ?LOG(3, "packet_2_message: A Watchevent arrived"),
-        {watchevent, Payload};
-    <<255, 255, 255, 252, 0:64, Payload/binary>> ->
-        {authreply, Payload};
+        <<255,255,255,255, 255,255,255,255, 255,255,255,255 , 0,0,0,0, Payload/binary>> ->
+            ?LOG(3, "packet_2_message: A Watchevent arrived"),
+            {watchevent, Payload};
+        <<255, 255, 255, 252, 0:64, Payload/binary>> ->
+            {authreply, Payload};
 %%% Normal Replys
-    <<MessId:32, Zxid:64, Payload/binary>> ->
-        ?LOG(3, "packet_2_message: A normal Message arrived"),
+        <<MessId:32, Zxid:64, Payload/binary>> ->
+            ?LOG(3, "packet_2_message: A normal Message arrived"),
             {normal, MessId, Zxid, Payload}
     end.
 
 %% A message typed as watchevent is processed
 %% returns {child, Path, SyncConnected} | {data, Path, SyncConnected}
 get_watch_data(Binary) ->
-     <<TypInt:32, SyncConnected:32, PackedPath/binary>> = Binary,
-     {Path, _Nothing} = unpack(PackedPath),
-     case TypInt of
-     1 ->
-         Typ = node_created;
-     2 ->
-         Typ = node_deleted;
-     3 ->
-         Typ = data_changed;
-     4 ->
-         Typ = child_changed
-     end,
-     {Typ, binary_to_list(Path), SyncConnected}.
+    <<TypInt:32, SyncConnected:32, PackedPath/binary>> = Binary,
+    {Path, _Nothing} = unpack(PackedPath),
+    case TypInt of
+        1 ->
+            Typ = node_created;
+        2 ->
+            Typ = node_deleted;
+        3 ->
+            Typ = data_changed;
+        4 ->
+            Typ = child_changed
+    end,
+    {Typ, binary_to_list(Path), SyncConnected}.
 
 %% Gets a replybinary from the server and returns it as a parsed Erlang tupel.
 %% First step is to filter if there was an error and pass it on to the server if there is.
@@ -71,15 +71,15 @@ get_watch_data(Binary) ->
 replymessage_2_reply(CommId, PayloadWithErrorCode) ->
     ?LOG(1,"packet_2_message: Trying to Interpret payload: ~w", [PayloadWithErrorCode]),
     case PayloadWithErrorCode of
-    <<0:32, Payload/binary>> ->
-        ?LOG(1
-         ,"packet_2_message: Interpreting the payload ~w with commid ~w"
-         ,[Payload, CommId]),
+        <<0:32, Payload/binary>> ->
+            ?LOG(1
+                ,"packet_2_message: Interpreting the payload ~w with commid ~w"
+                ,[Payload, CommId]),
             {Reply, <<>>} = interpret_reply_data(CommId, Payload),
-        ?LOG(1, "The Reply is ~w",[Reply]),
-        Reply;
-    <<ErrorCode:32/signed, _/binary>> ->
-        {error, map_error(ErrorCode)}
+            ?LOG(1, "The Reply is ~w",[Reply]),
+            Reply;
+        <<ErrorCode:32/signed, _/binary>> ->
+            {error, map_error(ErrorCode)}
     end.
 
 %% Map server error code to an atom. In reality, not all of these can be
@@ -206,7 +206,7 @@ getbinary_2_stat(Binary) ->
     <<Czxid:64,                           Mzxid:64,
       Ctime:64,                           Mtime:64,
       DaVer:32,          CVer:32,         AclVer:32,    EpheOwner:64,
-                         DaLe:32,         NumChi:32,    Pzxid:64,
+      DaLe:32,         NumChi:32,    Pzxid:64,
       Rest/binary>> = Binary,
     ?LOG(3,"p2m: Matching Parameterdata Successfull"),
     {#ezk_stat{czxid          = Czxid,   mzxid     = Mzxid,

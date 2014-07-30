@@ -34,13 +34,13 @@ start_link(ConnectionPId, ButlerPId, Number) ->
     Paths = lists:map(fun(Num) -> ("/highlander/test/node" ++ [Num+48]) end, Numbers),
     io:format("Spawn with Paths ~s",[Paths]),
     Ergo = ezk_highlander:start(ConnectionPId, test_highlander_impl, [ButlerPId], Paths),
-     io:format("Result of spawning is ~w",[Ergo]),
+    io:format("Result of spawning is ~w",[Ergo]),
     Ergo.
 
 init(_Path, [ButlerPId]) ->
     Father = self(),
     ChildPId = spawn(fun() ->
-			  run(Father, ButlerPId) end),
+                             run(Father, ButlerPId) end),
     io:format("Child sucessfully spawned with pid ~w from ~w",[ChildPId, Father]),
     _State = {ok,ChildPId}.
 
@@ -52,11 +52,11 @@ run(Father, ButlerPId) ->
 
 loop() ->
     receive
-	{ping, PingPongPId} ->
-	    PingPongPId ! {pong, self()},
-	    loop();
-	die -> 
-	    ok
+        {ping, PingPongPId} ->
+            PingPongPId ! {pong, self()},
+            loop();
+        die ->
+            ok
     end.
 
 terminate(State, _Reason) ->

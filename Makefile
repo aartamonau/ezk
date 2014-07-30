@@ -10,7 +10,7 @@ compile:
 conf_local:
 	cp -f ./configs/local_ezk.app.src ./src/ezk.app.src
 
-conf_extern: 
+conf_extern:
 	cp -f ./configs/extern_ezk.app.src ./src/ezk.app.src
 
 ## Hudson's continuous integration rule
@@ -28,13 +28,13 @@ common_move:
 	mkdir -p ct_log
 	mv ct_run* ct_log/
 
-compile: 
+compile:
 	./rebar compile
 
 test:	compile zk_start testen zk_stop
 
 testen:
-	sleep 5	
+	sleep 5
 	./rebar ct
 	sleep 5
 
@@ -51,12 +51,12 @@ zk_start_s: zk_config
 zk_stop_s:
 	ZOOCFGDIR=./zookeeper/zoosingle/conf ./zookeeper/zoosingle/bin/zkServer.sh stop
 
-zk_stop: 
+zk_stop:
 	ZOOCFGDIR=./zookeeper/zoo1/conf ./zookeeper/zoo1/bin/zkServer.sh stop
 	ZOOCFGDIR=./zookeeper/zoo2/conf ./zookeeper/zoo2/bin/zkServer.sh stop
 	ZOOCFGDIR=./zookeeper/zoo3/conf ./zookeeper/zoo3/bin/zkServer.sh stop
 
-zk_config: zk_clone 
+zk_config: zk_clone
 	mkdir -p ./zookeeper/data/zoo1
 	mkdir -p ./zookeeper/data/zoo2
 	mkdir -p ./zookeeper/data/zoo3

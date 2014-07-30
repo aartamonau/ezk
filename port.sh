@@ -16,4 +16,3 @@ openall)
 *)
     echo "port.sh open  <portnumber> \nport.sh close <portnumber> \nport.sh openall"
 esac
-

@@ -50,7 +50,7 @@
 
 %% gen_server callbacks
 -export([addauth/3, die/2]).
-%normal functions
+%% normal functions
 -export([  create/3,   create/4,   create/5]).
 -export([n_create/5, n_create/6, n_create/7]).
 -export([  delete/2,   delete/3]).
@@ -67,11 +67,11 @@
 -export([delete_op/1, delete_op/2]).
 -export([set_op/2, set_op/3]).
 -export([check_op/2]).
-%functions dealing with watches
+%% functions dealing with watches
 -export([ls/4, get/4, ls2/4]).
-%macros
+%% macros
 -export([delete_all/2, ensure_path/2]).
-%infos
+%% infos
 -export([info_get_iterations/1]).
 
 -export([exists/2, exists/4]).
@@ -108,7 +108,7 @@ die(ConnectionPId, Reason) when is_pid(ConnectionPId) ->
 %% Returns {error, auth_failed} if server rejected auth
 %% Returns {error, unknown, ErrorCodeBin} if something new happened
 addauth(ConnectionPId, Scheme, Auth) when is_pid(ConnectionPId) ->
-   call_and_catch(ConnectionPId, {addauth, Scheme, Auth}).
+    call_and_catch(ConnectionPId, {addauth, Scheme, Auth}).
 
 %% Creates a new ZK_Node
 %% Reply = Path where Path = String
@@ -184,13 +184,13 @@ delete_all(ConnectionPId, Path) when is_pid(ConnectionPId) ->
             case Path of
                 "/" ->
                     lists:map(fun(A) ->
-                        (delete_all(ConnectionPId, Path++(binary_to_list(A))))
+                                      (delete_all(ConnectionPId, Path++(binary_to_list(A))))
                               end, ListOfChilds);
                 _Else  ->
-                        lists:map(fun(A) ->
-                            (delete_all(ConnectionPId,
-                                        Path++"/"++(binary_to_list(A))))
-                                  end, ListOfChilds)
+                    lists:map(fun(A) ->
+                                      (delete_all(ConnectionPId,
+                                                  Path++"/"++(binary_to_list(A))))
+                              end, ListOfChilds)
 
             end,
             ?LOG(3, "Killing ~s",[Path]),
@@ -210,7 +210,7 @@ exists(ConnectionPId, Path) when is_pid(ConnectionPId) ->
 exists(ConnectionPId, Path, WatchOwner, WatchMessage)
   when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {watchcommand, {exists, existsw, Path, {exi, WatchOwner,
-                                                                           WatchMessage}}}).
+                                                                          WatchMessage}}}).
 
 %% Reply = {Data, Parameters} where Data = The Data stored in the Node
 %% and Parameters = #ezk_stat{}
@@ -224,7 +224,7 @@ n_get(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 %% with Type = child
 get(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {watchcommand, {get, getw, Path, {data, WatchOwner,
-                                                                     WatchMessage}}}).
+                                                                    WatchMessage}}}).
 
 %% Returns the actual Acls of a Node
 %% Reply = {[ACL],Parameters} with ACl and Parameters like above
@@ -280,7 +280,7 @@ n_ls(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 ls(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
     ?LOG(3,"Connection: Send lsw"),
     call_and_catch(ConnectionPId, {watchcommand, {ls, lsw, Path, {child, WatchOwner,
-                                                                   WatchMessage}}}).
+                                                                  WatchMessage}}}).
 
 %% Lists all Children of a Node. Paths are given as Binarys!
 %% Reply = {[ChildName],Parameters} with Parameters and ChildName like above.
@@ -294,7 +294,7 @@ n_ls2(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 %% Same Reaktion like at get with watch but Type = child
 ls2(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {watchcommand, {ls2, ls2w,Path ,{child, WatchOwner,
-                                                                    WatchMessage}}}).
+                                                                   WatchMessage}}}).
 
 %% Returns the Actual Transaction Id of the Client.
 %% Reply = Iteration = Int.
@@ -326,7 +326,8 @@ get_prefix_paths([]) ->
 get_prefix_paths([ Head | Tail]) ->
     PrefixTails = get_prefix_paths(Tail),
     HeadedPrefixTails = lists:map(fun(PathTail) ->
-                            ("/"++ Head++ PathTail) end, PrefixTails),
+                                          ("/"++ Head++ PathTail)
+                                  end, PrefixTails),
     ["/" ++ Head | HeadedPrefixTails].
 
 %% Ensures one single node exists. (parent node is expected to exist.
@@ -482,10 +483,10 @@ terminate(_Reason, State) ->
     Watchtable = State#cstate.watchtable,
     ?LOG(1,"Connection: Sending watches"),
     ets:foldl(fun({_, WO, WM}, _Acc0) ->
-                ?LOG(2,"Connection: Sending watchlost to ~w: ~w",
-                [WO, {WM, connection_loss}]),
-                WO ! {WM, connection_loss},
-                ok
+                      ?LOG(2,"Connection: Sending watchlost to ~w: ~w",
+                           [WO, {WM, connection_loss}]),
+                      WO ! {WM, connection_loss},
+                      ok
               end, ok, Watchtable),
     OpenRequests = State#cstate.open_requests,
     dict:map(fun send_client_broke/2, OpenRequests),
@@ -507,7 +508,7 @@ waitterminateok(Socket) ->
         {tcp, Socket, _Something} ->
             waitterminateok(Socket)
     after 4 ->
-        ok
+            ok
     end.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -534,7 +535,7 @@ establish_connection(Ip, Port, WantedTimeout, HeartBeatTime) ->
     ?LOG(1, "Connection: Server starting"),
     ?LOG(3, "Connection: IP: ~s , Port: ~w, Timeout: ~w.",[Ip,Port,WantedTimeout]),
     case  gen_tcp:connect(Ip,Port,[binary,{packet,4}]) of
-    {ok, Socket} ->
+        {ok, Socket} ->
             ?LOG(3, "Connection: Socket open"),
             HandshakePacket = <<0:32, 0:64, WantedTimeout:32, 0:64, 16:32, 0:128>>,
             ?LOG(3, "Connection: Handshake build"),

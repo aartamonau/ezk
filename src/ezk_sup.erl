@@ -41,7 +41,7 @@
 %% ===================================================================
 
 start_link(Args) ->
-supervisor:start_link({local, ?MODULE}, ?MODULE, Args).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, Args).
 
 %% ===================================================================
 %% Supervisor callbacks

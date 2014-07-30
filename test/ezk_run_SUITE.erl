@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% ezk_run_SUITE: performs various loops of different commands in parallel 
+%% ezk_run_SUITE: performs various loops of different commands in parallel
 %%                to test parallel workflow
 %%
 %% Copyright (c) 2011 Marco Grebe. All Rights Reserved.
@@ -65,34 +65,33 @@ groups() ->
     [].
 
 all() ->
-      [rt1, rt5, rt10, rt50, rt75, rt100,
-      multirun_test].
-     %% {skip, test}.
+    [rt1, rt5, rt10, rt50, rt75, rt100,
+     multirun_test].
 
-rt1(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
-    parteststarter:start((?PAR_RUNS div 100), ezk_run_SUITE, run_test, 
-			 [?RUN_ROUNDS, ConPId]).
-rt5(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+rt1(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
+    parteststarter:start((?PAR_RUNS div 100), ezk_run_SUITE, run_test,
+                         [?RUN_ROUNDS, ConPId]).
+rt5(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 20), ezk_run_SUITE, run_test,
-			 [?RUN_ROUNDS, ConPId]).
-rt10(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+                         [?RUN_ROUNDS, ConPId]).
+rt10(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 10), ezk_run_SUITE, run_test,
-			 [?RUN_ROUNDS, ConPId]).
-rt50(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
-    parteststarter:start((?PAR_RUNS div 5), ezk_run_SUITE, run_test, 
-			 [?RUN_ROUNDS, ConPId]).
-rt75(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
-    parteststarter:start((?PAR_RUNS div 2), ezk_run_SUITE, run_test, 
-			 [?RUN_ROUNDS, ConPId]).
-rt100(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+                         [?RUN_ROUNDS, ConPId]).
+rt50(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
+    parteststarter:start((?PAR_RUNS div 5), ezk_run_SUITE, run_test,
+                         [?RUN_ROUNDS, ConPId]).
+rt75(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
+    parteststarter:start((?PAR_RUNS div 2), ezk_run_SUITE, run_test,
+                         [?RUN_ROUNDS, ConPId]).
+rt100(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS), ezk_run_SUITE, run_test,
-			 [?RUN_ROUNDS, ConPId]).
+                         [?RUN_ROUNDS, ConPId]).
 
 multirun_test(_Config) ->
     {ok, Con1} = ezk:start_connection(),
@@ -101,21 +100,21 @@ multirun_test(_Config) ->
     {ok, Con4} = ezk:start_connection(),
     {ok, Con5} = ezk:start_connection(),
     parteststarter:start(5, ezk_run_SUITE, multirun_tester, [{Con1, Con2, Con3, Con4,
-							      Con5}]).
+                                                              Con5}]).
 
 multirun_tester(Number, {Con1, Con2, Con3, Con4, Con5}) ->
     case Number of
-	1 -> Con = Con1;
-	2 -> Con = Con2;
-	3 -> Con = Con3;
-	4 -> Con = Con4;
-	5 -> Con = Con5;
+        1 -> Con = Con1;
+        2 -> Con = Con2;
+        3 -> Con = Con3;
+        4 -> Con = Con4;
+        5 -> Con = Con5;
         _Else -> Con = Con1
     end,
     io:format("Number ~w is starting the run_test with Connection ~w",[Number, Con]),
     run_test(Number, ?MULTIRUN_RUNS, Con).
-    
-    
+
+
 
 
 run_test(_Number, Cycles, ConPId) ->
@@ -126,9 +125,9 @@ run_test(_Number, Cycles, ConPId) ->
     io:format("change data  ~w with ~w cycles",[self(), Cycles]),
     List2 = change_data(ConPId, List,[]),
     io:format("test data again  ~w with ~w cycles",[self(), Cycles]),
-    ok    = test_data(ConPId, List2),    
+    ok    = test_data(ConPId, List2),
 
-%% ------------ datawatches
+    %% ------------ datawatches
     io:format("set datawatch ~w with ~w cycles",[self(), Cycles]),
     ok    = set_watch_and_test( ConPId, List2),
     io:format("spawn changer ~w with ~w cycles",[self(), Cycles]),
@@ -136,7 +135,7 @@ run_test(_Number, Cycles, ConPId) ->
     io:format("wait for watch ~w with ~w cycles",[self(), Cycles]),
     ok    = wait_datawatches(List2),
 
-%% ------------ childwatches
+    %% ------------ childwatches
     io:format("set childwatches ~w with ~w cycles",[self(), Cycles]),
     ok    = set_childwatches( ConPId, List2),
     io:format("spawn childchanger ~w with ~w cycles",[self(), Cycles]),
@@ -144,7 +143,7 @@ run_test(_Number, Cycles, ConPId) ->
     io:format("wait for childwatches ~w with ~w cycles",[self(), Cycles]),
     ok    = wait_childwatches(List2),
 
-%% ----------- child and datawatches if nodes deleted
+    %% ----------- child and datawatches if nodes deleted
     io:format("alternating watches ~w with ~w cycles",[self(), Cycles]),
     ok    = set_alternating_datachildwatches( ConPId, 0, List2),
     io:format("spawn childkiller ~w with ~w cycles",[self(), Cycles]),
@@ -152,25 +151,25 @@ run_test(_Number, Cycles, ConPId) ->
     io:format("wait for alternating watches ~w with ~w cycles",[self(), Cycles]),
     ok    = wait_nodedeleted_watches(List2),
 
-%% ---------
-    
+    %% ---------
+
     io:format("finished ~w with ~w cycles",[self(), Cycles]).
 
-set_alternating_datachildwatches(_ConPId, _Number, []) ->  
+set_alternating_datachildwatches(_ConPId, _Number, []) ->
     ok;
-set_alternating_datachildwatches(ConPId, 0, [{Path, _Data} | Tail]) -> 
+set_alternating_datachildwatches(ConPId, 0, [{Path, _Data} | Tail]) ->
     Self = self(),
     io:format("try to set ls watch for ~w on ~s",[Self,Path]),
     {ok, _Childs} = ezk:ls(ConPId, Path, Self, {mixedwatch, Path}),
     io:format("ls watch set for ~w on ~s",[Self,Path]),
     set_alternating_datachildwatches(ConPId, 1, Tail);
-set_alternating_datachildwatches(ConPId, 1, [{Path, _Data} | Tail]) -> 
+set_alternating_datachildwatches(ConPId, 1, [{Path, _Data} | Tail]) ->
     Self = self(),
     io:format("try to set get watch for ~w on ~s",[Self,Path]),
     {ok, _Data1} = ezk:get(ConPId, Path, Self, {mixedwatch, Path}),
     io:format("get watch set for ~w on ~s",[Self,Path]),
     set_alternating_datachildwatches(ConPId, 2, Tail);
-set_alternating_datachildwatches(ConPId, 2, [{Path, _Data} | Tail]) -> 
+set_alternating_datachildwatches(ConPId, 2, [{Path, _Data} | Tail]) ->
     Self = self(),
     io:format("try to set exist watch for ~w on ~s",[Self,Path]),
     {ok, _Data1} = ezk:exists(ConPId, Path, Self, {mixedwatch, Path}),
@@ -190,10 +189,10 @@ wait_nodedeleted_watches([{Path, _Data} | Tail]) ->
     Self = self(),
     io:format("~w waiting for a watch",[Self]),
     receive
-       {{mixedwatch, Path}, _Left} ->
-    	    io:format("Got a nodedeleted, ~w left",[length(Tail)]),
-       	    wait_nodedeleted_watches(Tail)
-    end.    
+        {{mixedwatch, Path}, _Left} ->
+            io:format("Got a nodedeleted, ~w left",[length(Tail)]),
+            wait_nodedeleted_watches(Tail)
+    end.
 
 change_childs(_ConPId, []) ->
     ok;
@@ -207,8 +206,8 @@ wait_childwatches([]) ->
     ok;
 wait_childwatches([{Path, _Data} | Tail]) ->
     receive
-       {{childwatch, Path}, _Left} ->
-	    wait_childwatches(Tail)
+        {{childwatch, Path}, _Left} ->
+            wait_childwatches(Tail)
     end.
 
 set_childwatches(_ConPId, []) ->
@@ -223,10 +222,10 @@ wait_datawatches([]) ->
     ok;
 wait_datawatches([{Path, _Data} | Tail]) ->
     receive
-       {{datawatch, Path}, _Left} ->
-	    wait_datawatches(Tail)
+        {{datawatch, Path}, _Left} ->
+            wait_datawatches(Tail)
     end.
-    
+
 sequenzed_delete(_ConPId, []) ->
     ok;
 sequenzed_delete(ConPId, [{Path,_Data} | Tail]) ->
@@ -262,4 +261,3 @@ sequenzed_create(ConPId, Path, CyclesLeft, List) ->
 
 datamaker(N) ->
     list_to_binary(lists:seq(1,N)).
-    

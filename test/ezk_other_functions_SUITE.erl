@@ -44,16 +44,16 @@ end_per_testcase(_TestCase, _Config) ->
 groups() ->
     [].
 
-all() -> 
+all() ->
     %% {skip, test}.
     [existsw_test, info_tests, acl_test].
 
 existsw_test(Config) ->
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config), 
-    Pathlist = ["/test1", "/test2", "/test3", "/test4", "/test5", "/test6", "/test7"],  
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
+    Pathlist = ["/test1", "/test2", "/test3", "/test4", "/test5", "/test6", "/test7"],
     set_exist_watches(ConPId, Pathlist),
     spawn(fun() ->
-		  create_nodes(ConPId, Pathlist) end),
+                  create_nodes(ConPId, Pathlist) end),
     waitexistwatches(ConPId, Pathlist),
     ok.
 
@@ -69,31 +69,31 @@ create_nodes(_ConPId, []) ->
 create_nodes(ConPId, [Path | Pathlist]) ->
     ezk:create(ConPId, Path, list_to_binary("test")),
     create_nodes(ConPId, Pathlist).
-    
+
 waitexistwatches(_ConPId, []) ->
     ok;
 waitexistwatches(ConPId, [Path | Pathlist]) ->
     receive
-	{{existwatch, Path}, _Something} ->
-	    {ok, _getInformations} = ezk:exists(ConPId, Path),
-	    ok = ezk:delete(ConPId, Path),
-	    waitexistwatches(ConPId, Pathlist)
+        {{existwatch, Path}, _Something} ->
+            {ok, _getInformations} = ezk:exists(ConPId, Path),
+            ok = ezk:delete(ConPId, Path),
+            waitexistwatches(ConPId, Pathlist)
     end.
 
 info_tests(Config) ->
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config), 
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     {ok, _I} = ezk:info_get_iterations(ConPId),
     {ok, _I2} = ezk:get_connections(),
     ezk:help().
-    
 
-acl_test(Config) ->    
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config), 
+
+acl_test(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     Data = list_to_binary("data"),
-    {ok, Node} = ezk:create(ConPId, "/test", Data, es, 
-			    [
-			     {[a], "world", "anyone"}, {[w,r], "world", "anyone"}
-			    ]),
+    {ok, Node} = ezk:create(ConPId, "/test", Data, es,
+                            [
+                             {[a], "world", "anyone"}, {[w,r], "world", "anyone"}
+                            ]),
     true       = test_an_acl(ConPId, Node, a),
     true       = test_an_acl(ConPId, Node, w),
     true       = test_an_acl(ConPId, Node, r),
@@ -101,7 +101,7 @@ acl_test(Config) ->
     false      = test_an_acl(ConPId, Node, d),
     {ok, {OldACLSBin, _I}} = ezk:get_acl(ConPId, Node),
     OldACLS = make_acls_to_lists(OldACLSBin),
-    NewACLS = [ {[d], "world","anyone"} | OldACLS],   
+    NewACLS = [ {[d], "world","anyone"} | OldACLS],
     io:format("Setting new acls: ~w",[NewACLS]),
     {ok, _I1}   = ezk:set_acl(ConPId, Node, NewACLS),
     io:format("ACLS set."),
@@ -123,37 +123,30 @@ test_an_acl(ConPId, Node, Atom) ->
     io:format("outer: testing for ~w in list:  ~w",[Atom, ACLS]),
     test_an_acl_list(Atom, ACLS).
 
-test_an_acl_list(_Atom, []) ->    
+test_an_acl_list(_Atom, []) ->
     false;
-test_an_acl_list(Atom, [{Permissions, Scheme, Id} | List]) -> 
+test_an_acl_list(Atom, [{Permissions, Scheme, Id} | List]) ->
     io:format("inner: testing for ~w in ~w",[Atom, Permissions]),
     Any = list_to_binary("anyone"),
     Wor = list_to_binary("world"),
-    case {Scheme, Id} of 
-	{Wor, Any} ->
-	    case is_elem(Atom, Permissions) of
-		true ->
-		    true;
-		false  ->
-		    test_an_acl_list(Atom , List)
-	    end;
-	_Else ->
-	    test_an_acl_list(Atom, List)
+    case {Scheme, Id} of
+        {Wor, Any} ->
+            case is_elem(Atom, Permissions) of
+                true ->
+                    true;
+                false  ->
+                    test_an_acl_list(Atom , List)
+            end;
+        _Else ->
+            test_an_acl_list(Atom, List)
     end.
 
-is_elem(_Elem, []) ->    
+is_elem(_Elem, []) ->
     false;
 is_elem(Elem, [First | Tail]) ->
     if
-	Elem == First ->
-	    true;
-	true ->
-	    is_elem(Elem, Tail)
+        Elem == First ->
+            true;
+        true ->
+            is_elem(Elem, Tail)
     end.
-
-
-
-    
-    
-			    
-    

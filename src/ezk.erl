@@ -1,4 +1,3 @@
-
 %% -------------------------------------------------------------------
 %%
 %% ezk: The Interface Module. No real functions (but help/0).
@@ -25,10 +24,10 @@
 -module(ezk).
 -include_lib("../include/ezk.hrl").
 
-%functions creating and deleting zkNodes
+%% functions creating and deleting zkNodes
 -export([  create/3,   create/4,   create/5,   delete/2,   delete/3]).
 -export([n_create/5, n_create/6, n_create/7, n_delete/4, n_delete/5]).
-%functions dealing with node informations
+%% functions dealing with node informations
 -export([  set/3,   set/4,   get/2,   ls/2,   ls2/2]).
 -export([n_set/5, n_set/6, n_get/4, n_ls/4, n_ls2/4]).
 -export([  set_acl/3,   set_acl/4,   get_acl/2]).
@@ -39,13 +38,13 @@
 -export([delete_op/1, delete_op/2]).
 -export([set_op/2, set_op/3]).
 -export([check_op/2]).
-%functions dealing with watches
+%% functions dealing with watches
 -export([ls/4, get/4, ls2/4]).
-%macros
+%% macros
 -export([delete_all/2, ensure_path/2]).
-%infos
+%% infos
 -export([info_get_iterations/1,  help/0]).
-%Stop commands (forcing Client to choose a new random Server from List)
+%% Stop commands (forcing Client to choose a new random Server from List)
 -export([die/1, die/2, auth/3]).
 
 -export([start_connection/0, start_connection/1, end_connection/2]).

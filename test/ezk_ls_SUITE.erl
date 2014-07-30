@@ -1,4 +1,3 @@
-
 %% -------------------------------------------------------------------
 %%
 %% ezk_ls_SUITE: performs various loops of  ls commands in parallel to test high load
@@ -63,67 +62,66 @@ groups() ->
 
 all() ->
     [ ls1,  ls5,  ls10,  ls20,  ls50,  ls100,
-    ls21,  ls25,  ls210,  ls220,  ls250,  ls2100,
-    nls1, nls5, nls10, nls20, nls50, nls100].
-     %% {skip, test}.
+      ls21,  ls25,  ls210,  ls220,  ls250,  ls2100,
+      nls1, nls5, nls10, nls20, nls50, nls100].
 
-ls1(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+ls1(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     io:format("Starting test with ConPid ~w",[ConPId]),
     parteststarter:start((?PAR_RUNS div 100), ezk_ls_SUITE, ls_test, [?LS_RUNS, ConPId]).
-ls5(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+ls5(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 20), ezk_ls_SUITE, ls_test, [?LS_RUNS, ConPId]).
-ls10(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+ls10(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 10), ezk_ls_SUITE, ls_test, [?LS_RUNS, ConPId]).
-ls20(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+ls20(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 5), ezk_ls_SUITE, ls_test, [?LS_RUNS, ConPId]).
 ls50(Config) ->
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
-     parteststarter:start((?PAR_RUNS div 2), ezk_ls_SUITE, ls_test, [?LS_RUNS, ConPId]).
-ls100(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
+    parteststarter:start((?PAR_RUNS div 2), ezk_ls_SUITE, ls_test, [?LS_RUNS, ConPId]).
+ls100(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS), ezk_ls_SUITE, ls_test, [?LS_RUNS, ConPId]).
 
-ls21(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+ls21(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     io:format("Starting test with ConPid ~w",[ConPId]),
     parteststarter:start((?PAR_RUNS div 100), ezk_ls_SUITE, ls2_test, [?LS_RUNS, ConPId]).
-ls25(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+ls25(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 20), ezk_ls_SUITE, ls2_test, [?LS_RUNS, ConPId]).
-ls210(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+ls210(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 10), ezk_ls_SUITE, ls2_test, [?LS_RUNS, ConPId]).
-ls220(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+ls220(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 5), ezk_ls_SUITE, ls2_test, [?LS_RUNS, ConPId]).
 ls250(Config) ->
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
-     parteststarter:start((?PAR_RUNS div 2), ezk_ls_SUITE, ls2_test, [?LS_RUNS, ConPId]).
-ls2100(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
+    parteststarter:start((?PAR_RUNS div 2), ezk_ls_SUITE, ls2_test, [?LS_RUNS, ConPId]).
+ls2100(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS), ezk_ls_SUITE, ls2_test, [?LS_RUNS, ConPId]).
 
-nls1(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+nls1(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 100), ezk_ls_SUITE, nls_test, [?LS_RUNS, ConPId]).
-nls5(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+nls5(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 20), ezk_ls_SUITE, nls_test, [?LS_RUNS, ConPId]).
-nls10(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+nls10(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 10), ezk_ls_SUITE, nls_test, [?LS_RUNS, ConPId]).
-nls20(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+nls20(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 5), ezk_ls_SUITE, nls_test, [?LS_RUNS, ConPId]).
-nls50(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+nls50(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS div 2), ezk_ls_SUITE, nls_test, [?LS_RUNS, ConPId]).
-nls100(Config) -> 
-    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),    
+nls100(Config) ->
+    {connection_pid, ConPId} = lists:keyfind(connection_pid, 1, Config),
     parteststarter:start((?PAR_RUNS), ezk_ls_SUITE, nls_test, [?LS_RUNS, ConPId]).
 
 ls2_test(_Number, 0, _ConPId) ->
@@ -142,13 +140,13 @@ nls_test(_Number, N, ConPId) ->
     Self = self(),
     io:format("starting receiverchild with ~w Rounds",[N]),
     K = spawn(fun() ->
-		      receive_ls(N, Self) end),
+                      receive_ls(N, Self) end),
     io:format("starting to send"),
     send_ls(N, K, ConPId),
     io:format("all send"),
     receive
-	all_ls_received ->
-	    ok
+        all_ls_received ->
+            ok
     end.
 
 send_ls(0, _Child, _ConPId) ->
@@ -163,9 +161,9 @@ receive_ls(0, Father) ->
     ok;
 receive_ls(N, Father) ->
     receive
-	{ls, {ok, _I}} ->
-	    io:format("got one ~w", [self()]),
-	    receive_ls(N-1, Father);
-	Else  ->
-	    io:format("I got Something: ~w ~n",[Else])		
+        {ls, {ok, _I}} ->
+            io:format("got one ~w", [self()]),
+            receive_ls(N-1, Father);
+        Else  ->
+            io:format("I got Something: ~w ~n",[Else])
     end.
