@@ -43,7 +43,7 @@
 %% macros
 -export([delete_all/2, ensure_path/2]).
 %% infos
--export([info_get_iterations/1,  help/0]).
+-export([info_get_iterations/1]).
 %% Stop commands (forcing Client to choose a new random Server from List)
 -export([die/1, die/2, auth/3]).
 
