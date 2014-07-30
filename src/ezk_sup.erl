@@ -25,7 +25,7 @@
 -module(ezk_sup).
 
 -behaviour(supervisor).
--include_lib("../include/ezk.hrl").
+-include("ezk.hrl").
 
 %% API
 -export([start_link/1]).

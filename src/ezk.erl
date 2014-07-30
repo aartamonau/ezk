@@ -22,7 +22,7 @@
 %% -------------------------------------------------------------------
 
 -module(ezk).
--include_lib("../include/ezk.hrl").
+-include("ezk.hrl").
 
 %% functions creating and deleting zkNodes
 -export([  create/3,   create/4,   create/5,   delete/2,   delete/3]).

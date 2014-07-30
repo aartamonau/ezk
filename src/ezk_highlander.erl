@@ -23,7 +23,7 @@
 
 -module(ezk_highlander).
 
--include_lib("../include/ezk.hrl").
+-include("ezk.hrl").
 
 -behaviour(gen_server).
 

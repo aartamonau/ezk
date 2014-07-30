@@ -23,7 +23,7 @@
 %%
 %% -------------------------------------------------------------------
 -module(ezk_message_2_packet).
--include_lib("../include/ezk.hrl").
+-include("ezk.hrl").
 -export([make_packet/2, make_addauth_packet/1, make_quit_message/1]).
 -export([get_permi_int/2]).
 

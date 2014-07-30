@@ -76,7 +76,7 @@
 
 -export([exists/2, exists/4]).
 
--include_lib("../include/ezk.hrl").
+-include("ezk.hrl").
 
 -define(SERVER, ?MODULE).
 -define(HEARTBEATTIME, 10000).

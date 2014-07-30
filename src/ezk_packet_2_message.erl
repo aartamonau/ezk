@@ -23,7 +23,7 @@
 %% -------------------------------------------------------------------
 -module(ezk_packet_2_message).
 -export([get_message_typ/1, replymessage_2_reply/2, get_watch_data/1]).
--include_lib("../include/ezk.hrl").
+-include("ezk.hrl").
 
 %% First stage of Message Passing.
 %% The first part of the Message determines the type (heartbeat, watchevent, reply) and

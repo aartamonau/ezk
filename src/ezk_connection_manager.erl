@@ -39,7 +39,7 @@
 -export([start_connection/0, start_connection/1, start_connection/2, end_connection/2]).
 -export([add_monitors/2, get_connections/0]).
 
--include_lib("../include/ezk.hrl").
+-include("ezk.hrl").
 
 -define(SERVER, ?MODULE).
 -define(NUMBER_CONNECTION_TRYS, 100).
