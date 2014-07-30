@@ -73,10 +73,9 @@
 -type ezk_acl_id()       :: string().
 -type ezk_acl()          :: {ezk_acl_perms(), ezk_acl_scheme(), ezk_acl_id()}.
 -type ezk_acls()         :: [ezk_acl()].
--type ezk_getdata()      :: #getdata{}.
 -type ezk_watchowner()   :: pid().
 -type ezk_watchmessage() :: term().
--type ezk_ls2data()      :: {children, [ezk_path()]} | ezk_getdata().
+-type ezk_ls2data()      :: {children, [ezk_path()]} | #ezk_stat{}.
 -type ezk_server()       :: {}.
 -type ezk_monitor()      :: pid().
 -type ezk_authreply()    :: {ok, authed} | {error, auth_failed} |
@@ -96,9 +95,9 @@
 -spec delete_all/2 ::  (ezk_conpid(), ezk_path()) ->
                        {ok, ezk_path()} | {error, ezk_err()}.
 -spec exists/2 :: (ezk_conpid(), ezk_path()) ->
-                  {ok, ezk_getdata()} | {error, ezk_err()}.
+                  {ok, #ezk_stat{}} | {error, ezk_err()}.
 -spec exists/4 :: (ezk_conpid(), ezk_path(), ezk_watchowner(), ezk_watchmessage()) ->
-                  {ok, ezk_getdata()} | {error, ezk_err()}.
+                  {ok, #ezk_stat{}} | {error, ezk_err()}.
 -spec ls/2     :: (ezk_conpid(), ezk_path()) ->
                   {ok, [ezk_path()]} | {error, ezk_err()}.
 -spec ls/4     :: (ezk_conpid(), ezk_path(), ezk_watchowner(), ezk_watchmessage()) ->
@@ -108,19 +107,19 @@
 -spec ls2/4    :: (ezk_conpid(), ezk_path(), ezk_watchowner(), ezk_watchmessage()) ->
                   {ok, [ezk_ls2data()]} | {error, ezk_err()}.
 -spec get/2    :: (ezk_conpid(), ezk_path()) ->
-                  {ok, {ezk_data(), ezk_getdata()}} | {error, ezk_err()}.
+                  {ok, {ezk_data(), #ezk_stat{}}} | {error, ezk_err()}.
 -spec get/4    :: (ezk_conpid(), ezk_path(), ezk_watchowner(), ezk_watchmessage()) ->
-                  {ok, {ezk_data(), ezk_getdata()}} | {error, ezk_err()}.
+                  {ok, {ezk_data(), #ezk_stat{}}} | {error, ezk_err()}.
 -spec set/3    :: (ezk_conpid(), ezk_path(), ezk_data()) ->
-                  {ok, ezk_getdata()} | {error, ezk_err()}.
+                  {ok, #ezk_stat{}} | {error, ezk_err()}.
 -spec set/4    :: (ezk_conpid(), ezk_path(), ezk_data(), ezk_version()) ->
-                  {ok, ezk_getdata()} | {error, ezk_err()}.
+                  {ok, #ezk_stat{}} | {error, ezk_err()}.
 -spec set_acl/3:: (ezk_conpid(), ezk_path(), ezk_acls()) ->
-                  {ok, ezk_getdata()} | {error, ezk_err()}.
+                  {ok, #ezk_stat{}} | {error, ezk_err()}.
 -spec set_acl/4:: (ezk_conpid(), ezk_path(), ezk_acls(), ezk_version()) ->
-                  {ok, ezk_getdata()} | {error, ezk_err()}.
+                  {ok, #ezk_stat{}} | {error, ezk_err()}.
 -spec get_acl/2:: (ezk_conpid, ezk_path()) ->
-                  {ok, {ezk_acls(), ezk_getdata()}} | {error, ezk_err()}.
+                  {ok, {ezk_acls(), #ezk_stat{}}} | {error, ezk_err()}.
 
 -spec start_connection/0 :: () -> {ok, ezk_conpid()} | {error, no_server_reached}.
 -spec start_connection/1 :: ([ezk_server()]) ->
@@ -256,8 +255,7 @@ exists(ConnectionPId, Path, WatchOwner, WatchMessage) ->
     ezk_connection:exists(ConnectionPId, Path, WatchOwner, WatchMessage).
 
 %% Reply = {Data, Parameters} where Data = The Data stored in the Node
-%% and Parameters = {getdata, Czxid, Mzxid, Pzxid, Ctime, Mtime, Dataversion,
-%%                   Datalength, Number_children, Cversion, Aclversion, Ephe_owner}
+%% and Parameters = #ezk_stat{}
 get(ConnectionPId, Path) ->
     ezk_connection:get(ConnectionPId, Path).
 n_get(ConnectionPId, Path, Receiver, Tag) ->

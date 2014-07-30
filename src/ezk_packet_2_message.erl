@@ -134,7 +134,7 @@ do_interpret_reply_data(2, Reply) ->
     {ok, Reply};
 %%% exists
 do_interpret_reply_data(3, Reply) ->
-    getbinary_2_list(Reply);
+    getbinary_2_stat(Reply);
 %%% get --> Reply = The data stored in the node and then all the nodes  parameters
 do_interpret_reply_data(4, Reply) ->
     ?LOG(3,"P2M: Got a get reply"),
@@ -146,11 +146,11 @@ do_interpret_reply_data(4, Reply) ->
                         end,
     ?LOG(3,"P2M: The Parameterdata is ~w",[Left]),
     ?LOG(3,"P2M: Data is ~w",[ReplyData]),
-    {Parameter, Rest} = getbinary_2_list(Left),
+    {Parameter, Rest} = getbinary_2_stat(Left),
     {{ReplyData, Parameter}, Rest};
 %%% set --> Reply = the nodes parameters
 do_interpret_reply_data(5, Reply) ->
-    getbinary_2_list(Reply);
+    getbinary_2_stat(Reply);
 
 %%% get_acl --> A list of the Acls and the nodes parameters
 do_interpret_reply_data(6, Reply) ->
@@ -159,12 +159,12 @@ do_interpret_reply_data(6, Reply) ->
     ?LOG(3,"P2M: There are ~w acls",[NumberOfAcls]),
     {Acls, Data2} = get_n_acls(NumberOfAcls, [],  Data),
     ?LOG(3,"P2M: Acls got parsed: ~w", [Acls]),
-    {Parameter, Rest} = getbinary_2_list(Data2),
+    {Parameter, Rest} = getbinary_2_stat(Data2),
     ?LOG(3,"P2M: Data got also parsed."),
     {{Acls, Parameter}, Rest};
 %%% set_acl --> Reply = the nodes parameters
 do_interpret_reply_data(7, Reply) ->
-    getbinary_2_list(Reply);
+    getbinary_2_stat(Reply);
 %%% ls --> Reply = a list of all children of the node.
 do_interpret_reply_data(8, Reply) ->
     ?LOG(4,"packet_2_message: Interpreting a ls"),
@@ -179,7 +179,7 @@ do_interpret_reply_data(8, Reply) ->
 do_interpret_reply_data(12, Reply) ->
     {<<NumberOfAnswers:32>>, Data} = split_binary(Reply, 4),
     {Children, Left} =  get_n_paths(NumberOfAnswers, Data),
-    {Parameter, Rest} = getbinary_2_list(Left),
+    {Parameter, Rest} = getbinary_2_stat(Left),
     {[{children, Children}, Parameter], Rest};
 do_interpret_reply_data(13, Reply) ->
     {ok, Reply};
@@ -201,7 +201,7 @@ get_n_paths(N, Binary) ->
     {[binary_to_list(ThisPathBin) | RekResult ], Left2}.
 
 %% interprets the parameters of a node and returns a List of them.
-getbinary_2_list(Binary) ->
+getbinary_2_stat(Binary) ->
     ?LOG(3,"p2m: Trying to match Parameterdata"),
     <<Czxid:64,                           Mzxid:64,
       Ctime:64,                           Mtime:64,
@@ -209,12 +209,12 @@ getbinary_2_list(Binary) ->
                          DaLe:32,         NumChi:32,    Pzxid:64,
       Rest/binary>> = Binary,
     ?LOG(3,"p2m: Matching Parameterdata Successfull"),
-    {#getdata{czxid          = Czxid,   mzxid     = Mzxid,
-              ctime          = Ctime,   mtime     = Mtime,
-              dataversion    = DaVer,   datalength= DaLe,
-              number_children= NumChi,  pzxid     = Pzxid,
-              cversion       = CVer,    aclversion= AclVer,
-              ephe_owner     = EpheOwner},
+    {#ezk_stat{czxid          = Czxid,   mzxid     = Mzxid,
+               ctime          = Ctime,   mtime     = Mtime,
+               dataversion    = DaVer,   datalength= DaLe,
+               number_children= NumChi,  pzxid     = Pzxid,
+               cversion       = CVer,    aclversion= AclVer,
+               ephe_owner     = EpheOwner},
      Rest}.
 
 %% uses the first 4 Byte of a binary to determine the lengths of the data and then

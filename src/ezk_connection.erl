@@ -213,8 +213,7 @@ exists(ConnectionPId, Path, WatchOwner, WatchMessage)
                                                                            WatchMessage}}}).
 
 %% Reply = {Data, Parameters} where Data = The Data stored in the Node
-%% and Parameters = {getdata, Czxid, Mzxid, Pzxid, Ctime, Mtime, Dataversion,
-%%                   Datalength, Number_children, Cversion, Aclversion, Ephe_owner}
+%% and Parameters = #ezk_stat{}
 get(ConnectionPId, Path) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {command, {get, Path}}).
 n_get(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
