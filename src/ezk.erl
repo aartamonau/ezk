@@ -75,7 +75,7 @@
 -type ezk_acls()         :: [ezk_acl()].
 -type ezk_watchowner()   :: pid().
 -type ezk_watchmessage() :: term().
--type ezk_ls2data()      :: {children, [ezk_path()]} | #ezk_stat{}.
+-type ezk_ls2data()      :: {[ezk_path()], #ezk_stat{}}.
 -type ezk_server()       :: {}.
 -type ezk_monitor()      :: pid().
 -type ezk_authreply()    :: {ok, authed} | {error, auth_failed} |
@@ -103,9 +103,9 @@
 -spec ls/4     :: (ezk_conpid(), ezk_path(), ezk_watchowner(), ezk_watchmessage()) ->
                   {ok, [ezk_path()]} | {error, ezk_err()}.
 -spec ls2/2    :: (ezk_conpid(), ezk_path()) ->
-                  {ok, [ezk_ls2data()]} | {error, ezk_err()}.
+                  {ok, ezk_ls2data()} | {error, ezk_err()}.
 -spec ls2/4    :: (ezk_conpid(), ezk_path(), ezk_watchowner(), ezk_watchmessage()) ->
-                  {ok, [ezk_ls2data()]} | {error, ezk_err()}.
+                  {ok, ezk_ls2data()} | {error, ezk_err()}.
 -spec get/2    :: (ezk_conpid(), ezk_path()) ->
                   {ok, {ezk_data(), #ezk_stat{}}} | {error, ezk_err()}.
 -spec get/4    :: (ezk_conpid(), ezk_path(), ezk_watchowner(), ezk_watchmessage()) ->

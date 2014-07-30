@@ -180,7 +180,7 @@ do_interpret_reply_data(12, Reply) ->
     {<<NumberOfAnswers:32>>, Data} = split_binary(Reply, 4),
     {Children, Left} =  get_n_paths(NumberOfAnswers, Data),
     {Parameter, Rest} = getbinary_2_stat(Left),
-    {[{children, Children}, Parameter], Rest};
+    {{Children, Parameter}, Rest};
 do_interpret_reply_data(13, Reply) ->
     {ok, Reply};
 %%% transaction
