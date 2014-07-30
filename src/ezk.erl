@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% ezk: The Interface Module. No real functions (but help/0).
+%% ezk: The Interface Module. No real functions.
 %%
 %% Copyright (c) 2011 Marco Grebe. All Rights Reserved.
 %% Copyright (c) 2011 global infinipool GmbH.  All Rights Reserved.
@@ -130,58 +130,6 @@
 -spec info_get_iterations/1 :: (ezk_conpid()) -> integer().
 -spec auth/3                :: (ezk_conpid(), ezk_acl_scheme(), ezk_acl_id()) ->
                                ezk_authreply().
-
-help() ->
-    io:format("--------------------------------------------------------------~n"),
-    io:format("| The Commands this Client knows about:                      |~n"),
-    io:format("|------------------------------------------------------------|~n"),
-    io:format("| ezk:create/3     : ConPId,  Path, Data                     |~n"),
-    io:format("| ezk:create/4     : ConPId,  Path, Data, Typ                |~n"),
-    io:format("| ezk:create/5     : ConPId,  Path, Data, Typ, [Acl]         |~n"),
-    io:format("| ezk:delete/2     : ConPId,  Path                           |~n"),
-    io:format("| ezk:delete/3     : ConPId,  Path, Version                  |~n"),
-    io:format("| ezk:delete_all/2 : ConPId,  Path                           |~n"),
-    io:format("| ezk:exists/2     : ConPId,  Path                           |~n"),
-    io:format("| ezk:exists/4     : ConPId,  Path, WatchOwner, Watchmessage |~n"),
-    io:format("| ezk:get/2        : ConPId,  Path                           |~n"),
-    io:format("| ezk:get/4        : ConPId,  Path, WatchOwner, Watchmessage |~n"),
-    io:format("| ezk:get_acl/2    : ConPId,  Path                           |~n"),
-    io:format("| ezk:set/3        : ConPId,  Path, Data                     |~n"),
-    io:format("| ezk:set/4        : ConPId,  Path, Data, Version            |~n"),
-    io:format("| ezk:set_acl/3    : ConPId,  Path, [Acl]                    |~n"),
-    io:format("| ezk:set_acl/4    : ConPId,  Path, [Acl], Version           |~n"),
-    io:format("| ezk:ls/2         : ConPId,  Path                           |~n"),
-    io:format("| ezk:ls/4         : ConPId,  Path, WatchOwner, Watchmessage |~n"),
-    io:format("| ezk:ls2/2        : ConPId,  Path                           |~n"),
-    io:format("| ezk:ls2/4        : ConPId,  Path, WatchOwner, Watchmessage |~n"),
-    io:format("| ezk:info_get_iterations/1  : ConPId                        |~n"),
-    io:format("| ezk:start_connection/0                                     |~n"),
-    io:format("| ezk:start_connection/1     : Servers                       |~n"),
-    io:format("| ezk:end_connection/2       : ConPId, Reason                |~n"),
-    io:format("| ezk:addMonitors/2          : ConPId, MonitorPIds           |~n"),
-    io:format("| ezk:getConnections/0                                       |~n"),
-    io:format("|------------------------------------------------------------|~n"),
-    io:format("| In Progress:                                               |~n"),
-    io:format("| ezk:auth/3       : ConPId,  Scheme, Id                     |~n"),
-    io:format("| --> Dangerous function. Fail auths get the                 |~n"),
-    io:format("|     zkServer to close the Session!                         |~n"),
-    io:format("|      ---                                ---                |~n"),
-    io:format("| Nonblocking Calls:                                         |~n"),
-    io:format("|     The last 2 Parameters are PId of the receiver          |~n"),
-    io:format("|       and a Tag. The Answermessage is {Tag,Reply}          |~n"),
-    io:format("| n_create/4, n_create/5, n_create/6,   n_delete/3           |~n"),
-    io:format("| n_set/4,    n_get/3,    n_set_acl/4,  n_get_acl/3          |~n"),
-    io:format("| n_ls/3,     n_ls2/3                                        |~n"),
-    io:format("|------------------------------------------------------------|~n"),
-    io:format("| Datatypes:                                                 |~n"),
-    io:format("| Acl = {Scheme,Id, [Permission]}                            |~n"),
-    io:format("| Path = Scheme = Id = Reason = String                       |~n"),
-    io:format("| Permission = r | w | c | d | a                             |~n"),
-    io:format("| WatchOwner, ConPId = PId           WatchMessage = String   |~n"),
-    io:format("| Data    = All Things              Typ = e | s | es         |~n"),
-    io:format("| Server  = {IP, Port, Timeout(ms), Heartbeattime(ms)        |~n"),
-    io:format("| Servers = [Server]                                         |~n"),
-    io:format("|------------------------------------------------------------|~n").
 
 
 %%--------------------------- Zookeeper Functions ---------------------
