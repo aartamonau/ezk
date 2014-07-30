@@ -14,7 +14,7 @@
                    aclversion,
                    ephe_owner}).
 
--type ezk_err()          :: system_error | runtime_inconsistency |
+-type ezk_err()          :: rolled_back | system_error | runtime_inconsistency |
                             data_inconsistency | connection_loss |
                             marshalling_error | unimplemented |
                             operation_timeout | bad_arguments |

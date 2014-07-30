@@ -85,6 +85,7 @@ replymessage_2_reply(CommId, PayloadWithErrorCode) ->
 %% Map server error code to an atom. In reality, not all of these can be
 %% returned by server. But for simplicity and convenience we keep them here
 %% anyway.
+-spec map_error(integer()) -> ezk_err().
 map_error(0) -> rolled_back;
 map_error(-1) -> system_error;
 map_error(-2) -> runtime_inconsistency;
