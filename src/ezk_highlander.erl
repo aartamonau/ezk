@@ -1,4 +1,3 @@
-
 %% -------------------------------------------------------------------
 %%
 %% ezk_highlander: A behaviour that exactly one instance of a module per given path runs.
