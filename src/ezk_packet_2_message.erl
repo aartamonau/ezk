@@ -175,7 +175,7 @@ do_interpret_reply_data(8, Reply) ->
     {List, Rest} =  get_n_paths(NumberOfAnswers, Data),
     ?LOG(4,"packet_2_message: Paths extracted."),
     ?LOG(4,"packet_2_message: Paths are: ~w",[List]),
-    {lists:map(fun list_to_binary/1, List), Rest};
+    {List, Rest};
 %%% ls2 --> Reply = a list of the nodes children and the nodes parameters
 do_interpret_reply_data(12, Reply) ->
     {<<NumberOfAnswers:32>>, Data} = split_binary(Reply, 4),
