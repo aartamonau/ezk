@@ -159,9 +159,9 @@ n_delete(ConnectionPId, Path, Version, Receiver, Tag) when is_pid(ConnectionPId)
                     {nbcommand, delete_op(Path, Version), Receiver, Tag}).
 
 delete_op(Path) ->
-    {delete, Path, [], -1}.
+    {delete, Path, -1}.
 delete_op(Path, Version) ->
-    {delete, Path, [], Version}.
+    {delete, Path, Version}.
 
 %% Deletes a ZK_Node and all his childs.
 %% Reply = Path where Path = String

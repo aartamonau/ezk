@@ -54,7 +54,7 @@ make_payload({create, Path, Data, Typ, Acls}) ->
     Command = 1,
     {Command, Load};
 %%delete
-make_payload({delete, Path, _Typ, Version}) ->
+make_payload({delete, Path, Version}) ->
     Load = <<(pack_it_l2b(Path))/binary, Version:32/big>>,
     Command = 2,
     {Command, Load};
