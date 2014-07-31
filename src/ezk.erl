@@ -51,6 +51,13 @@
 -export([add_monitors/2, get_connections/0]).
 -export([exists/2, exists/4]).
 
+-export_type([ezk_create_op/0, ezk_delete_op/0, ezk_set_op/0, ezk_check_op/0]).
+
+-opaque ezk_create_op() :: {create, ezk_path(), ezk_data(), ezk_ctype(), ezk_acls()}.
+-opaque ezk_delete_op() :: {delete, ezk_path(), ezk_version()}.
+-opaque ezk_set_op() :: {set, ezk_path(), ezk_data(), ezk_version()}.
+-opaque ezk_check_op() :: {check, ezk_path(), ezk_version()}.
+
 
 %%--------------------------- Zookeeper Functions ---------------------
 %% Return {ok, Reply}.
@@ -232,28 +239,45 @@ ls2(ConnectionPId, Path, WatchOwner, WatchMessage) ->
 %% the same order. Valid operations can be created by create_op/2,
 %% create_op/3, create_op/4, delete_op/1, delete_op/2, set_op/2, set_op/3,
 %% check_op/2.
+-spec transaction(ezk_conpid(), Operations) ->
+                         {ok, [SuccessResponse] | [FailureResponse]} |
+                         {error, ezk_err()} when
+      Operations :: [ezk_create_op() | ezk_check_op() |
+                     ezk_set_op() | ezk_delete_op()],
+      SuccessResponse :: ok | {ok, SetResponse | CreateResponse},
+      FailureResponse :: {error, ezk_err()},
+      SetResponse :: #ezk_stat{},
+      CreateResponse :: ezk_path().
 transaction(ConnectionPId, Operations) ->
     ezk_connection:transaction(ConnectionPId, Operations).
 n_transaction(ConnectionPId, Operations, Receiver, Tag) ->
     ezk_connection:n_transaction(ConnectionPId, Operations, Receiver, Tag).
 
+-spec create_op(ezk_path(), ezk_data()) -> ezk_create_op().
 create_op(Path, Data) ->
     ezk_connection:create_op(Path, Data).
+-spec create_op(ezk_path(), ezk_data(), ezk_ctype()) -> ezk_create_op().
 create_op(Path, Data, Typ) ->
     ezk_connection:create_op(Path, Data, Typ).
+-spec create_op(ezk_path(), ezk_data(), ezk_ctype(), ezk_acls()) -> ezk_create_op().
 create_op(Path, Data, Typ, Acls) ->
     ezk_connection:create_op(Path, Data, Typ, Acls).
 
+-spec delete_op(ezk_path()) -> ezk_delete_op().
 delete_op(Path) ->
     ezk_connection:delete_op(Path).
+-spec delete_op(ezk_path(), ezk_version()) -> ezk_delete_op().
 delete_op(Path, Version) ->
     ezk_connection:delete_op(Path, Version).
 
+-spec set_op(ezk_path(), ezk_data()) -> ezk_set_op().
 set_op(Path, Data) ->
     ezk_connection:set_op(Path, Data).
+-spec set_op(ezk_path(), ezk_data(), ezk_version()) -> ezk_set_op().
 set_op(Path, Data, Version) ->
     ezk_connection:set_op(Path, Data, Version).
 
+-spec check_op(ezk_path(), ezk_version()) -> ezk_check_op().
 check_op(Path, Version) ->
     ezk_connection:check_op(Path, Version).
 
