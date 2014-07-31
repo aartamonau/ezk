@@ -50,6 +50,7 @@
 -export([start_connection/0, start_connection/1, end_connection/2]).
 -export([add_monitors/2, get_connections/0]).
 -export([exists/2, exists/4]).
+-export([sync/2, n_sync/4]).
 
 -export_type([ezk_create_op/0, ezk_delete_op/0, ezk_set_op/0, ezk_check_op/0]).
 
@@ -280,6 +281,12 @@ set_op(Path, Data, Version) ->
 -spec check_op(ezk_path(), ezk_version()) -> ezk_check_op().
 check_op(Path, Version) ->
     ezk_connection:check_op(Path, Version).
+
+-spec sync(ezk_conpid(), ezk_path()) -> ok | {error, ezk_err()}.
+sync(ConnectionPId, Path) ->
+    ezk_connection:sync(ConnectionPId, Path).
+n_sync(ConnectionPId, Path, Receiver, Tag) ->
+    ezk_connection:n_sync(ConnectionPId, Path, Receiver, Tag).
 
 %% Returns the Actual Transaction Id of the Client.
 %% Reply = Iteration = Int.

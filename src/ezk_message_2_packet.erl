@@ -111,6 +111,10 @@ make_payload({lsw, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 1:8>>,
     Command = 8,
     {Command, Load};
+make_payload({sync, Path}) ->
+    Load = <<(pack_it_l2b(Path))/binary>>,
+    Command = 9,
+    {Command, Load};
 %% ls2
 make_payload({ls2, Path}) ->
     Load = <<(pack_it_l2b(Path))/binary, 0:8>>,

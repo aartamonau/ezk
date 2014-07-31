@@ -75,6 +75,7 @@
 -export([info_get_iterations/1]).
 
 -export([exists/2, exists/4]).
+-export([sync/2, n_sync/4]).
 
 -include("ezk.hrl").
 
@@ -317,6 +318,12 @@ n_transaction(ConnectionPId, Operations, Receiver, Tag) when is_pid(ConnectionPI
 
 check_op(Path, Version) ->
     {check, Path, Version}.
+
+sync(ConnectionPId, Path) when is_pid(ConnectionPId) ->
+    call_and_catch(ConnectionPId, {command, {sync, Path}}).
+n_sync(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId, {nbcommand, {sync, Path}},
+                    Receiver, Tag).
 
 %% ----------- intern functions------------------------------------
 

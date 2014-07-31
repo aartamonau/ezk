@@ -176,12 +176,17 @@ do_interpret_reply_data(8, Reply) ->
     ?LOG(4,"packet_2_message: Paths extracted."),
     ?LOG(4,"packet_2_message: Paths are: ~w",[List]),
     {List, Rest};
+%% sync
+do_interpret_reply_data(9, Reply) ->
+    <<LengthOfData:32, ReplyPath:LengthOfData/binary, Rest/binary>> = Reply,
+    {binary_to_list(ReplyPath), Rest};
 %%% ls2 --> Reply = a list of the nodes children and the nodes parameters
 do_interpret_reply_data(12, Reply) ->
     {<<NumberOfAnswers:32>>, Data} = split_binary(Reply, 4),
     {Children, Left} =  get_n_paths(NumberOfAnswers, Data),
     {Parameter, Rest} = getbinary_2_stat(Left),
     {{Children, Parameter}, Rest};
+%%% check
 do_interpret_reply_data(13, Reply) ->
     {ok, Reply};
 %%% transaction
