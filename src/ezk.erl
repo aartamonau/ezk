@@ -47,7 +47,7 @@
 %% Stop commands (forcing Client to choose a new random Server from List)
 -export([die/1, die/2, auth/3]).
 
--export([start_connection/0, start_connection/1, end_connection/2]).
+-export([start_connection/0, start_connection/1, start_connection/2, end_connection/2]).
 -export([add_monitors/2, get_connections/0]).
 -export([exists/2, exists/4]).
 -export([sync/2, n_sync/4]).
@@ -308,6 +308,11 @@ start_connection() ->
                               {ok, ezk_conpid()} | {error, no_server_reached}.
 start_connection(Servers) ->
     ezk_connection_manager:start_connection(Servers).
+
+-spec start_connection([ezk_server()], [pid()]) ->
+                              {ok, ezk_conpid()} | {error, no_server_reached}.
+start_connection(Servers, MonitorPids) ->
+    ezk_connection_manager:start_connection(Servers, MonitorPids).
 
 %% stops a connection. Returns ok.
 -spec end_connection(ezk_conpid(), string()) -> ok | {error, no_connection}.
