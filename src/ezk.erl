@@ -282,7 +282,7 @@ set_op(Path, Data, Version) ->
 check_op(Path, Version) ->
     ezk_connection:check_op(Path, Version).
 
--spec sync(ezk_conpid(), ezk_path()) -> ok | {error, ezk_err()}.
+-spec sync(ezk_conpid(), ezk_path()) -> {ok, ezk_path()} | {error, ezk_err()}.
 sync(ConnectionPId, Path) ->
     ezk_connection:sync(ConnectionPId, Path).
 n_sync(ConnectionPId, Path, Receiver, Tag) ->
