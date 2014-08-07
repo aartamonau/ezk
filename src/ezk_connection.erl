@@ -313,8 +313,8 @@ ensure_path(ConnectionPId, Path) when is_pid(ConnectionPId) ->
 transaction(ConnectionPId, Operations) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {command, {transaction, Operations}}).
 n_transaction(ConnectionPId, Operations, Receiver, Tag) when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {transaction, Operations}},
-                    Receiver, Tag).
+    gen_server:cast(ConnectionPId,
+                    {nbcommand, {transaction, Operations}, Receiver, Tag}).
 
 check_op(Path, Version) ->
     {check, Path, Version}.
@@ -322,8 +322,7 @@ check_op(Path, Version) ->
 sync(ConnectionPId, Path) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {command, {sync, Path}}).
 n_sync(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
-    gen_server:cast(ConnectionPId, {nbcommand, {sync, Path}},
-                    Receiver, Tag).
+    gen_server:cast(ConnectionPId, {nbcommand, {sync, Path}, Receiver, Tag}).
 
 %% ----------- intern functions------------------------------------
 
