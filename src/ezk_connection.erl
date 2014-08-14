@@ -213,8 +213,10 @@ n_exists(ConnectionPId, Path, Receiver, Tag) ->
 
 exists(ConnectionPId, Path, WatchOwner, WatchMessage)
   when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {watchcommand, {exists, existsw, Path, {exi, WatchOwner,
-                                                                          WatchMessage}}}).
+    call_and_catch(ConnectionPId,
+                   {watchcommand,
+                    {command, exists, existsw, Path,
+                     {exi, WatchOwner, WatchMessage}}}).
 
 %% Reply = {Data, Parameters} where Data = The Data stored in the Node
 %% and Parameters = #ezk_stat{}
@@ -227,8 +229,10 @@ n_get(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 %% M = {WatchMessage, {Path, Type, SyncCon}
 %% with Type = child
 get(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {watchcommand, {get, getw, Path, {data, WatchOwner,
-                                                                    WatchMessage}}}).
+    call_and_catch(ConnectionPId,
+                   {watchcommand,
+                    {command, get, getw, Path,
+                     {data, WatchOwner, WatchMessage}}}).
 
 %% Returns the actual Acls of a Node
 %% Reply = {[ACL],Parameters} with ACl and Parameters like above
@@ -283,8 +287,10 @@ n_ls(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 %% Same Reaktion like at get with watch but Type = child
 ls(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
     ?LOG(3,"Connection: Send lsw"),
-    call_and_catch(ConnectionPId, {watchcommand, {ls, lsw, Path, {child, WatchOwner,
-                                                                  WatchMessage}}}).
+    call_and_catch(ConnectionPId,
+                   {watchcommand,
+                    {command, ls, lsw, Path,
+                     {child, WatchOwner, WatchMessage}}}).
 
 %% Lists all Children of a Node. Paths are given as Binarys!
 %% Reply = {[ChildName],Parameters} with Parameters and ChildName like above.
@@ -297,8 +303,10 @@ n_ls2(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 %% like above, but a Childwatch is set to the Node.
 %% Same Reaktion like at get with watch but Type = child
 ls2(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
-    call_and_catch(ConnectionPId, {watchcommand, {ls2, ls2w,Path ,{child, WatchOwner,
-                                                                   WatchMessage}}}).
+    call_and_catch(ConnectionPId,
+                   {watchcommand,
+                    {command, ls2, ls2w, Path,
+                     {child, WatchOwner, WatchMessage}}}).
 
 %% Returns the Actual Transaction Id of the Client.
 %% Reply = Iteration = Int.
@@ -401,21 +409,33 @@ handle_call({command, Args}, From, State) ->
 %% a) Save an entry in the watchtable (key: {Typ, Path})
 %% b) Look up if already a watch of this type is set to the node.
 %% c) if yes the command is user without setting a new one.
-handle_call({watchcommand, {Command, CommandW, Path, {WType, WO, WM}}}, From, State) ->
+handle_call({watchcommand,
+             {Type, Command, CommandW, Path, {WType, WO, WM}}},
+            From, State) ->
     ?LOG(1," Connection: Got a WatchSetter"),
     Watchtable = State#cstate.watchtable,
     AllIn = ets:lookup(Watchtable, {WType,Path}),
     ?LOG(3," Connection: Searched Table"),
     true = ets:insert(Watchtable, {{WType, Path}, WO, WM}),
     ?LOG(3," Connection: Inserted new Entry: ~w",[{{WType, Path}, WO, WM}]),
-    case AllIn of
-        [] ->
-            ?LOG(3," Connection: Search got []"),
-            handle_call({command, {CommandW, Path}}, From, State);
-        _Else ->
-            ?LOG(3," Connection: Already Watches set to this path/typ"),
-            handle_call({command, {Command, Path}}, From, State)
-    end;
+
+    ActualCommand =
+        case AllIn of
+            [] ->
+                ?LOG(3," Connection: Search got []"),
+                CommandW;
+            _Else ->
+                ?LOG(3," Connection: Already Watches set to this path/typ"),
+                Command
+        end,
+    Call = case Type of
+               command ->
+                   {command, {ActualCommand, Path}};
+               {nbcommand, Tag} ->
+                   %% reusing watch owner as a receiver for the reply
+                   {nbcommand, {ActualCommand, Path, WO, Tag}}
+           end,
+    handle_call(Call, From, State);
 %% Handles orders to die by dying
 handle_call({die, Reason}, _From, State) ->
     ?LOG(3," Connection: exiting myself"),
