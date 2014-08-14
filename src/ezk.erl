@@ -49,7 +49,7 @@
 
 -export([start_connection/0, start_connection/1, start_connection/2, end_connection/2]).
 -export([add_monitors/2, get_connections/0]).
--export([exists/2, exists/4]).
+-export([exists/2, exists/4, n_exists/4]).
 -export([sync/2, n_sync/4]).
 
 -export_type([ezk_create_op/0, ezk_delete_op/0, ezk_set_op/0, ezk_check_op/0]).
@@ -135,6 +135,8 @@ delete_all(ConnectionPId, Path) ->
 -spec exists(ezk_conpid(), ezk_path()) -> {ok, #ezk_stat{}} | {error, ezk_err()}.
 exists(ConnectionPId, Path) ->
     ezk_connection:exists(ConnectionPId, Path).
+n_exists(ConnectionPId, Path, Receiver, Tag) ->
+    ezk_connection:n_exists(ConnectionPId, Path, Receiver, Tag).
 
 -spec exists(ezk_conpid(), ezk_path(), ezk_watchowner(), ezk_watchmessage()) ->
                     {ok, #ezk_stat{}} | {error, ezk_err()}.

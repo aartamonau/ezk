@@ -74,7 +74,7 @@
 %% infos
 -export([info_get_iterations/1]).
 
--export([exists/2, exists/4]).
+-export([exists/2, exists/4, n_exists/4]).
 -export([sync/2, n_sync/4]).
 
 -include("ezk.hrl").
@@ -208,6 +208,9 @@ delete_all(ConnectionPId, Path) when is_pid(ConnectionPId) ->
 %% b) when path is created if path did not exist.
 exists(ConnectionPId, Path) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {command, {exists, Path}}).
+n_exists(ConnectionPId, Path, Receiver, Tag) ->
+    gen_server:cast(ConnectionPId, {nbcommand, {exists, Path}, Receiver, Tag}).
+
 exists(ConnectionPId, Path, WatchOwner, WatchMessage)
   when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId, {watchcommand, {exists, existsw, Path, {exi, WatchOwner,
