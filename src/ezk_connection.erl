@@ -68,13 +68,13 @@
 -export([set_op/2, set_op/3]).
 -export([check_op/2]).
 %% functions dealing with watches
--export([ls/4, get/4, ls2/4]).
+-export([ls/4, n_ls/5, get/4, n_get/5, ls2/4, n_ls2/5, exists/4, n_exists/5]).
 %% macros
 -export([delete_all/2, ensure_path/2]).
 %% infos
 -export([info_get_iterations/1]).
 
--export([exists/2, exists/4, n_exists/4]).
+-export([exists/2, n_exists/4]).
 -export([sync/2, n_sync/4]).
 
 -include("ezk.hrl").
@@ -217,6 +217,12 @@ exists(ConnectionPId, Path, WatchOwner, WatchMessage)
                    {watchcommand,
                     {command, exists, existsw, Path,
                      {exi, WatchOwner, WatchMessage}}}).
+n_exists(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag)
+  when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId,
+                    {watchcommand,
+                     {{nbcommand, ReplyTag}, exists, existsw, Path,
+                      {exi, WatchOwner, WatchMessage}}}).
 
 %% Reply = {Data, Parameters} where Data = The Data stored in the Node
 %% and Parameters = #ezk_stat{}
@@ -233,6 +239,13 @@ get(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
                    {watchcommand,
                     {command, get, getw, Path,
                      {data, WatchOwner, WatchMessage}}}).
+n_get(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag)
+  when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId,
+                    {watchcommand,
+                     {{nbcommand, ReplyTag}, get, getw, Path,
+                      {data, WatchOwner, WatchMessage}}}).
+
 
 %% Returns the actual Acls of a Node
 %% Reply = {[ACL],Parameters} with ACl and Parameters like above
@@ -291,6 +304,14 @@ ls(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
                    {watchcommand,
                     {command, ls, lsw, Path,
                      {child, WatchOwner, WatchMessage}}}).
+n_ls(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag)
+  when is_pid(ConnectionPId) ->
+    ?LOG(3,"Connection: Send lsw"),
+    gen_server:cast(ConnectionPId,
+                    {watchcommand,
+                     {{nbcommand, ReplyTag}, ls, lsw, Path,
+                      {child, WatchOwner, WatchMessage}}}).
+
 
 %% Lists all Children of a Node. Paths are given as Binarys!
 %% Reply = {[ChildName],Parameters} with Parameters and ChildName like above.
@@ -307,6 +328,12 @@ ls2(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
                    {watchcommand,
                     {command, ls2, ls2w, Path,
                      {child, WatchOwner, WatchMessage}}}).
+n_ls2(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag)
+  when is_pid(ConnectionPId) ->
+    gen_server:cast(ConnectionPId,
+                    {watchcommand,
+                     {{nbcommand, ReplyTag}, ls2, ls2w, Path,
+                      {child, WatchOwner, WatchMessage}}}).
 
 %% Returns the Actual Transaction Id of the Client.
 %% Reply = Iteration = Int.

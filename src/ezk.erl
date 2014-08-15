@@ -39,7 +39,7 @@
 -export([set_op/2, set_op/3]).
 -export([check_op/2]).
 %% functions dealing with watches
--export([ls/4, get/4, ls2/4]).
+-export([ls/4, n_ls/5, get/4, n_get/5, ls2/4, n_ls2/5, exists/4, n_exists/5]).
 %% macros
 -export([delete_all/2, ensure_path/2]).
 %% infos
@@ -49,7 +49,7 @@
 
 -export([start_connection/0, start_connection/1, start_connection/2, end_connection/2]).
 -export([add_monitors/2, get_connections/0]).
--export([exists/2, exists/4, n_exists/4]).
+-export([exists/2, n_exists/4]).
 -export([sync/2, n_sync/4]).
 
 -export_type([ezk_create_op/0, ezk_delete_op/0, ezk_set_op/0, ezk_check_op/0]).
@@ -142,6 +142,9 @@ n_exists(ConnectionPId, Path, Receiver, Tag) ->
                     {ok, #ezk_stat{}} | {error, ezk_err()}.
 exists(ConnectionPId, Path, WatchOwner, WatchMessage) ->
     ezk_connection:exists(ConnectionPId, Path, WatchOwner, WatchMessage).
+n_exists(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag) ->
+    ezk_connection:n_exists(ConnectionPId, Path,
+                            WatchOwner, WatchMessage, ReplyTag).
 
 %% Reply = {Data, Parameters} where Data = The Data stored in the Node
 %% and Parameters = #ezk_stat{}
@@ -160,6 +163,9 @@ n_get(ConnectionPId, Path, Receiver, Tag) ->
                  {ok, {ezk_data(), #ezk_stat{}}} | {error, ezk_err()}.
 get(ConnectionPId, Path, WatchOwner, WatchMessage) ->
     ezk_connection:get(ConnectionPId, Path, WatchOwner, WatchMessage).
+n_get(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag) ->
+    ezk_connection:get(ConnectionPId, Path,
+                       WatchOwner, WatchMessage, ReplyTag).
 
 %% Returns the actual Acls of a Node
 %% Reply = {[ACL],Parameters} with ACl and Parameters like above
@@ -222,6 +228,8 @@ n_ls(ConnectionPId, Path, Receiver, Tag) ->
                 {ok, [ezk_path()]} | {error, ezk_err()}.
 ls(ConnectionPId, Path, WatchOwner, WatchMessage) ->
     ezk_connection:ls(ConnectionPId, Path, WatchOwner, WatchMessage).
+n_ls(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag) ->
+    ezk_connection:n_ls(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag).
 
 %% Lists all Children of a Node. Paths are given as Binarys!
 %% Reply = {[ChildName],Parameters} with Parameters and ChildName like above.
@@ -237,6 +245,9 @@ n_ls2(ConnectionPId, Path, Receiver, Tag) ->
                  {ok, ezk_ls2data()} | {error, ezk_err()}.
 ls2(ConnectionPId, Path, WatchOwner, WatchMessage) ->
     ezk_connection:ls2(ConnectionPId, Path, WatchOwner, WatchMessage).
+n_ls2(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag) ->
+    ezk_connection:n_ls2(ConnectionPId, Path,
+                         WatchOwner, WatchMessage, ReplyTag).
 
 %% Run a squence of operations atomically. Results returned in as a list in
 %% the same order. Valid operations can be created by create_op/2,
