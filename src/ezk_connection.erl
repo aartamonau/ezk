@@ -215,13 +215,13 @@ exists(ConnectionPId, Path, WatchOwner, WatchMessage)
   when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId,
                    {watchcommand,
-                    {command, exists, existsw, Path,
+                    {exists, existsw, Path,
                      {exi, WatchOwner, WatchMessage}}}).
 n_exists(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag)
   when is_pid(ConnectionPId) ->
     gen_server:cast(ConnectionPId,
                     {watchcommand,
-                     {{nbcommand, ReplyTag}, exists, existsw, Path,
+                     {exists, existsw, Path, ReplyTag,
                       {exi, WatchOwner, WatchMessage}}}).
 
 %% Reply = {Data, Parameters} where Data = The Data stored in the Node
@@ -237,13 +237,13 @@ n_get(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 get(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId,
                    {watchcommand,
-                    {command, get, getw, Path,
+                    {get, getw, Path,
                      {data, WatchOwner, WatchMessage}}}).
 n_get(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag)
   when is_pid(ConnectionPId) ->
     gen_server:cast(ConnectionPId,
                     {watchcommand,
-                     {{nbcommand, ReplyTag}, get, getw, Path,
+                     {get, getw, Path, ReplyTag,
                       {data, WatchOwner, WatchMessage}}}).
 
 
@@ -302,14 +302,14 @@ ls(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
     ?LOG(3,"Connection: Send lsw"),
     call_and_catch(ConnectionPId,
                    {watchcommand,
-                    {command, ls, lsw, Path,
+                    {ls, lsw, Path,
                      {child, WatchOwner, WatchMessage}}}).
 n_ls(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag)
   when is_pid(ConnectionPId) ->
     ?LOG(3,"Connection: Send lsw"),
     gen_server:cast(ConnectionPId,
                     {watchcommand,
-                     {{nbcommand, ReplyTag}, ls, lsw, Path,
+                     {ls, lsw, Path, ReplyTag,
                       {child, WatchOwner, WatchMessage}}}).
 
 
@@ -326,13 +326,13 @@ n_ls2(ConnectionPId, Path, Receiver, Tag) when is_pid(ConnectionPId) ->
 ls2(ConnectionPId, Path, WatchOwner, WatchMessage) when is_pid(ConnectionPId) ->
     call_and_catch(ConnectionPId,
                    {watchcommand,
-                    {command, ls2, ls2w, Path,
+                    {ls2, ls2w, Path,
                      {child, WatchOwner, WatchMessage}}}).
 n_ls2(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag)
   when is_pid(ConnectionPId) ->
     gen_server:cast(ConnectionPId,
                     {watchcommand,
-                     {{nbcommand, ReplyTag}, ls2, ls2w, Path,
+                     {ls2, ls2w, Path, ReplyTag,
                       {child, WatchOwner, WatchMessage}}}).
 
 %% Returns the Actual Transaction Id of the Client.
@@ -437,32 +437,10 @@ handle_call({command, Args}, From, State) ->
 %% b) Look up if already a watch of this type is set to the node.
 %% c) if yes the command is user without setting a new one.
 handle_call({watchcommand,
-             {Type, Command, CommandW, Path, {WType, WO, WM}}},
+             {Command, CommandW, Path, WatchMessage}},
             From, State) ->
-    ?LOG(1," Connection: Got a WatchSetter"),
-    Watchtable = State#cstate.watchtable,
-    AllIn = ets:lookup(Watchtable, {WType,Path}),
-    ?LOG(3," Connection: Searched Table"),
-    true = ets:insert(Watchtable, {{WType, Path}, WO, WM}),
-    ?LOG(3," Connection: Inserted new Entry: ~w",[{{WType, Path}, WO, WM}]),
-
-    ActualCommand =
-        case AllIn of
-            [] ->
-                ?LOG(3," Connection: Search got []"),
-                CommandW;
-            _Else ->
-                ?LOG(3," Connection: Already Watches set to this path/typ"),
-                Command
-        end,
-    Call = case Type of
-               command ->
-                   {command, {ActualCommand, Path}};
-               {nbcommand, Tag} ->
-                   %% reusing watch owner as a receiver for the reply
-                   {nbcommand, {ActualCommand, Path, WO, Tag}}
-           end,
-    handle_call(Call, From, State);
+    ActualCommand = register_watch(Command, CommandW, Path, WatchMessage, State),
+    handle_call({command, {ActualCommand, Path}}, From, State);
 %% Handles orders to die by dying
 handle_call({die, Reason}, _From, State) ->
     ?LOG(3," Connection: exiting myself"),
@@ -485,6 +463,11 @@ handle_call({addauth, Scheme, Auth}, From, State) ->
 %% the difference in handling compared with blocking commands is the prefix
 %% nonblocking in the open requests table which gets the server to answer with
 %% a normal message sending instead of the gen_server:reply command.
+handle_cast({watchcommand,
+             {Command, CommandW, Path, Tag, {_, WO, _} = WatchMessage}}, State) ->
+    ActualCommand = register_watch(Command, CommandW, Path, WatchMessage, State),
+    %% reusing watch owner as a receiver for the reply
+    handle_cast({nbcommand, {ActualCommand, Path}, WO, Tag}, State);
 handle_cast({nbcommand, Args, Receiver, Tag}, State) ->
     Iteration = State#cstate.iteration,
     {ok, CommId, Packet} = ezk_message_2_packet:make_packet(Args, Iteration),
@@ -720,4 +703,21 @@ call_and_catch(To, Msg, Timeout) ->
             {error, Error};
         Other ->
             Other
+    end.
+
+register_watch(Command, CommandW, Path, {WType, WO, WM}, State) ->
+    ?LOG(1," Connection: Got a WatchSetter"),
+    Watchtable = State#cstate.watchtable,
+    AllIn = ets:lookup(Watchtable, {WType, Path}),
+    ?LOG(3," Connection: Searched Table"),
+    true = ets:insert(Watchtable, {{WType, Path}, WO, WM}),
+    ?LOG(3," Connection: Inserted new Entry: ~w",[{{WType, Path}, WO, WM}]),
+
+    case AllIn of
+        [] ->
+            ?LOG(3," Connection: Search got []"),
+            CommandW;
+        _Else ->
+            ?LOG(3," Connection: Already Watches set to this path/typ"),
+            Command
     end.
