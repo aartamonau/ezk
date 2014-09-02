@@ -185,12 +185,12 @@ delete_all(ConnectionPId, Path) when is_pid(ConnectionPId) ->
             case Path of
                 "/" ->
                     lists:map(fun(A) ->
-                                      (delete_all(ConnectionPId, Path++(binary_to_list(A))))
+                                      (delete_all(ConnectionPId, Path++(A)))
                               end, ListOfChilds);
                 _Else  ->
                     lists:map(fun(A) ->
                                       (delete_all(ConnectionPId,
-                                                  Path++"/"++(binary_to_list(A))))
+                                                  Path++"/"++(A)))
                               end, ListOfChilds)
 
             end,
