@@ -164,8 +164,8 @@ n_get(ConnectionPId, Path, Receiver, Tag) ->
 get(ConnectionPId, Path, WatchOwner, WatchMessage) ->
     ezk_connection:get(ConnectionPId, Path, WatchOwner, WatchMessage).
 n_get(ConnectionPId, Path, WatchOwner, WatchMessage, ReplyTag) ->
-    ezk_connection:get(ConnectionPId, Path,
-                       WatchOwner, WatchMessage, ReplyTag).
+    ezk_connection:n_get(ConnectionPId, Path,
+                         WatchOwner, WatchMessage, ReplyTag).
 
 %% Returns the actual Acls of a Node
 %% Reply = {[ACL],Parameters} with ACl and Parameters like above
